@@ -1,0 +1,196 @@
+{
+    "name": "open-related",
+    "version": "0.0.1",
+    "author": {
+        "name": "Eric Amodio",
+        "email": "eamodio@gmail.com"
+    },
+    "publisher": "eamodio",
+    "engines": {
+        "vscode": "^1.8.0"
+    },
+    "license": "SEE LICENSE IN LICENSE",
+    "displayName": "Open Related",
+    "description": "Opens files related to the current file",
+    "categories": [
+        "Other"
+    ],
+    "keywords": [
+        "file",
+        "related",
+        "open",
+        "similar",
+        "files"
+    ],
+    "galleryBanner": {
+        "color": "#56098c",
+        "theme": "dark"
+    },
+    "icon": "images/icon.svg",
+    "preview": false,
+    "homepage": "https://github.com/eamodio/vscode-open-related/blob/master/README.md",
+    "bugs": {
+        "url": "https://github.com/eamodio/vscode-open-related/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/eamodio/vscode-open-related.git"
+    },
+    "main": "./out/src/extension",
+    "contributes": {
+        "configuration": {
+            "type": "object",
+            "title": "Open Related configuration",
+            "properties": {
+                "openrelated.rules": {
+                    "type": "array",
+                    "default": [
+                        {
+                            "language": "html",
+                            "extension": ".html",
+                            "locators": [{
+                                "pattern": "$(file).ts",
+                                "relativeTo": "file"
+                            },
+                            {
+                                "pattern": "$(file).js",
+                                "relativeTo": "file"
+                            }]
+                        },
+                        {
+                            "language": "typescript",
+                            "extension": ".ts",
+                            "locators": [{
+                                "pattern": "$(file).html",
+                                "relativeTo": "file"
+                            }]
+                        },
+                        {
+                            "language": "javascript",
+                            "extension": ".js",
+                            "locators": [{
+                                "pattern": "$(file).html",
+                                "relativeTo": "file"
+                            }]
+                        }
+                    ],
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "locators"
+                        ],
+                        "properties": {
+                            "extension": {
+                                "type": "string",
+                                "description": "Specifies the file extension to which this rule applies"
+                            },
+                            "language": {
+                                "type": "string",
+                                "description": "Specifies the language to which this rule applies"
+                            },
+                            "locators": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "required": [
+                                        "pattern",
+                                        "relativeTo"
+                                    ],
+                                    "properties": {
+                                        "pattern": {
+                                            "type": "string",
+                                            "description": "Specifies the glob pattern to use to search for related files. `$(file)` is a token replacement for the active file without its extension"
+                                        },
+                                        "relativeTo": {
+                                            "type": "string",
+                                            "default": "file",
+                                            "enum": [
+                                                "file",
+                                                "root"
+                                            ],
+                                            "description": "Specifies the what the provided path is relative to. `file` is relative to the current file. `root` is relative to the workspace"
+                                        },
+                                        "path": {
+                                            "type": "string",
+                                            "description": "Specifies the path to search for related files. Must be specified when `relativeTo` is `root`",
+                                            "dependencies": [
+                                                "relativeTo"
+                                            ]
+                                        }
+                                    },
+                                    "uniqueItems": true
+                                },
+                                "description": "Specifies the list of locators that will be used to search for related files"
+                            }
+                        },
+                        "uniqueItems": true
+                    },
+                    "description": "Specifies the rules to find related files"
+                },
+                "openrelated.autoOpen": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Specifies whether to automatically open the related file if there is only 1 result"
+                },
+                "openrelated.openPreview": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Specifies whether or not to open the related file in a preview tab"
+                },
+                "openrelated.advanced.debug": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Specifies debug mode"
+                },
+                "openrelated.advanced.output.level": {
+                    "type": "string",
+                    "default": "silent",
+                    "enum": [
+                        "silent",
+                        "errors",
+                        "verbose"
+                    ],
+                    "description": "Specifies how much (if any) output will be sent to the OpenRelated output channel"
+                }
+            }
+        },
+        "commands": [
+            {
+                "command": "openrelated.show",
+                "title": "Show Related",
+                "category": "Files"
+            }
+        ],
+        "keybindings": [
+            {
+                "command": "openrelated.show",
+                "key": "alt+r",
+                "when": "editorFocus"
+            }
+        ]
+    },
+    "activationEvents": [
+        "onCommand:openrelated.show"
+    ],
+    "scripts": {
+        "compile": "tsc -watch -p ./",
+        "lint": "tslint --project tslint.json",
+        "pack": "git clean -xdf && npm install && vsce package",
+        "postinstall": "node ./node_modules/vscode/bin/install",
+        "pub": "git clean -xdf --exclude=node_modules/ && npm install && vsce publish",
+        "vscode:prepublish": "tsc -p ./"
+    },
+    "dependencies": {
+        "glob": "^7.1.1",
+        "lodash.isequal": "^4.5.0"
+    },
+    "devDependencies": {
+        "@types/glob": "^5.0.30",
+        "@types/node": "^7.0.5",
+        "@types/mocha": "^2.2.39",
+        "mocha": "^3.2.0",
+        "tslint": "^4.4.2",
+        "typescript": "^2.1.6",
+        "vscode": "^1.0.3"
+    }
+}
