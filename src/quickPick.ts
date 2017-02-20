@@ -26,7 +26,7 @@ export class OpenFileCommandQuickPickItem extends CommandQuickPickItem {
     constructor(private cwd: string, private fileName: string) {
         super({
             label: `$(file-symlink-file) ${fileName}`,
-            description: cwd
+            description: path.relative(workspace.rootPath, cwd)
         }, undefined, undefined);
     }
 

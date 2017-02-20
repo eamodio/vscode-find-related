@@ -97,7 +97,7 @@ export class ShowRelatedCommand extends EditorCommand {
                     return;
                 }
                 resolve({
-                    cwd: path.relative(workspace.rootPath, options.cwd),
+                    cwd: options.cwd,
                     matches: matches
                 });
             });
