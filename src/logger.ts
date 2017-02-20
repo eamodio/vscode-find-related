@@ -10,14 +10,14 @@ workspace.onDidChangeConfiguration(onConfigurationChange);
 onConfigurationChange();
 
 function onConfigurationChange() {
-    const cfg = workspace.getConfiguration('openrelated').get<IAdvancedConfig>('advanced');
+    const cfg = workspace.getConfiguration('findrelated').get<IAdvancedConfig>('advanced');
 
     if (!Objects.areEquivalent(cfg.output, config && config.output)) {
         if (cfg.output.level === OutputLevel.Silent) {
             output && output.dispose();
         }
         else if (!output) {
-            output = window.createOutputChannel('OpenRelated');
+            output = window.createOutputChannel('FindRelated');
         }
     }
 
@@ -28,7 +28,7 @@ export class Logger {
 
     static log(message?: any, ...params: any[]): void {
         if (config.debug) {
-            console.log('[OpenRelated]', message, ...params);
+            console.log('[FindRelated]', message, ...params);
         }
 
         if (config.output.level === OutputLevel.Verbose) {
@@ -38,7 +38,7 @@ export class Logger {
 
     static error(message?: any, ...params: any[]): void {
         if (config.debug) {
-            console.error('[OpenRelated]', message, ...params);
+            console.error('[FindRelated]', message, ...params);
         }
 
         if (config.output.level !== OutputLevel.Silent) {
@@ -48,7 +48,7 @@ export class Logger {
 
     static warn(message?: any, ...params: any[]): void {
         if (config.debug) {
-            console.warn('[OpenRelated]', message, ...params);
+            console.warn('[FindRelated]', message, ...params);
         }
 
         if (config.output.level !== OutputLevel.Silent) {

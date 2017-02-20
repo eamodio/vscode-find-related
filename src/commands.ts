@@ -1,9 +1,9 @@
 'use strict';
 import { commands, Disposable, TextEditor, TextEditorEdit } from 'vscode';
 
-export type Commands = 'openrelated.show';
+export type Commands = 'findrelated.show';
 export const Commands = {
-    Show: 'openrelated.show' as Commands
+    Show: 'findrelated.show' as Commands
 };
 
 export abstract class EditorCommand extends Disposable {

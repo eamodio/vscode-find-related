@@ -1,6 +1,6 @@
-# Open Related Files
+# Find Related Files
 
-Opens files related to the current file based on configuration rules.
+Finds files related to the current file based on configuration rules.
 
 ### Default rules
 ```
@@ -47,9 +47,9 @@ Opens files related to the current file based on configuration rules.
 
 |Name | Description
 |-----|------------
-|`openrelated.rules`|Specifies the rules to find related files
-|`openrelated.autoOpen`|Specifies whether to automatically open the related file if there is only 1 result
-|`openrelated.openPreview`|Specifies whether or not to open the related file in a preview tab
+|`findrelated.rules`|Specifies the rules to find related files
+|`findrelated.autoOpen`|Specifies whether to automatically open the related file if there is only 1 result
+|`findrelated.openPreview`|Specifies whether or not to open the related file in a preview tab
 
 ## Known Issues
 

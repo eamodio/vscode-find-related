@@ -24,7 +24,7 @@ export class ShowRelatedCommand extends EditorCommand {
             const extension = path.extname(fileName).toLowerCase();
             const language = editor.document.languageId;
 
-            const cfg = workspace.getConfiguration('').get<IConfig>('openrelated');
+            const cfg = workspace.getConfiguration('').get<IConfig>('findrelated');
             const rules = cfg.rules.filter(_ => _.extension === extension && (!_.language || _.language === language) ||
                 _.language === language && (!_.extension || _.extension === extension));
 
@@ -80,7 +80,7 @@ export class ShowRelatedCommand extends EditorCommand {
             return selection && selection.execute(cfg.openPreview);
         }
         catch (ex) {
-            Logger.error('[OpenRelated.ShowRelatedCommand]', ex);
+            Logger.error('[FindRelated.ShowRelatedCommand]', ex);
             return window.showErrorMessage(`Unable to show related files. See output channel for more details`);
         }
     }

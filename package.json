@@ -1,26 +1,27 @@
 {
-    "name": "open-related",
+    "name": "find-related",
     "version": "0.0.1",
     "author": {
         "name": "Eric Amodio",
         "email": "eamodio@gmail.com"
     },
     "publisher": "eamodio",
+    "preview": true,
     "engines": {
         "vscode": "^1.8.0"
     },
     "license": "SEE LICENSE IN LICENSE",
-    "displayName": "Open Related",
-    "description": "Opens files related to the current file",
+    "displayName": "Find Related",
+    "description": "Finds files related to the current file based on configuration rules",
     "categories": [
         "Other"
     ],
     "keywords": [
-        "file",
         "related",
+        "find",
+        "files",
         "open",
-        "similar",
-        "files"
+        "similar"
     ],
     "galleryBanner": {
         "color": "#56098c",
@@ -28,13 +29,13 @@
     },
     "icon": "images/icon.svg",
     "preview": false,
-    "homepage": "https://github.com/eamodio/vscode-open-related/blob/master/README.md",
+    "homepage": "https://github.com/eamodio/vscode-find-related/blob/master/README.md",
     "bugs": {
-        "url": "https://github.com/eamodio/vscode-open-related/issues"
+        "url": "https://github.com/eamodio/vscode-find-related/issues"
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/eamodio/vscode-open-related.git"
+        "url": "https://github.com/eamodio/vscode-find-related.git"
     },
     "main": "./out/src/extension",
     "contributes": {
@@ -42,7 +43,7 @@
             "type": "object",
             "title": "Open Related configuration",
             "properties": {
-                "openrelated.rules": {
+                "findrelated.rules": {
                     "type": "array",
                     "default": [
                         {
@@ -127,22 +128,22 @@
                     },
                     "description": "Specifies the rules to find related files"
                 },
-                "openrelated.autoOpen": {
+                "findrelated.autoOpen": {
                     "type": "boolean",
                     "default": true,
                     "description": "Specifies whether to automatically open the related file if there is only 1 result"
                 },
-                "openrelated.openPreview": {
+                "findrelated.openPreview": {
                     "type": "boolean",
                     "default": true,
                     "description": "Specifies whether or not to open the related file in a preview tab"
                 },
-                "openrelated.advanced.debug": {
+                "findrelated.advanced.debug": {
                     "type": "boolean",
                     "default": false,
                     "description": "Specifies debug mode"
                 },
-                "openrelated.advanced.output.level": {
+                "findrelated.advanced.output.level": {
                     "type": "string",
                     "default": "silent",
                     "enum": [
@@ -150,27 +151,27 @@
                         "errors",
                         "verbose"
                     ],
-                    "description": "Specifies how much (if any) output will be sent to the OpenRelated output channel"
+                    "description": "Specifies how much (if any) output will be sent to the FindRelated output channel"
                 }
             }
         },
         "commands": [
             {
-                "command": "openrelated.show",
+                "command": "findrelated.show",
                 "title": "Show Related",
                 "category": "Files"
             }
         ],
         "keybindings": [
             {
-                "command": "openrelated.show",
+                "command": "findrelated.show",
                 "key": "alt+r",
                 "when": "editorFocus"
             }
         ]
     },
     "activationEvents": [
-        "onCommand:openrelated.show"
+        "onCommand:findrelated.show"
     ],
     "scripts": {
         "compile": "tsc -watch -p ./",
