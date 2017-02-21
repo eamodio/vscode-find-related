@@ -1,8 +1,8 @@
 'use strict';
 import { Arrays } from './system';
-import { QuickPickOptions, TextEditor, TextEditorEdit, window, workspace } from 'vscode';
+import { ExtensionContext, QuickPickOptions, TextEditor, TextEditorEdit, window, workspace } from 'vscode';
 import { Commands, EditorCommand } from './commands';
-import { IConfig, RelativeTo } from './configuration';
+import { IConfig, IRuleset, RelativeTo } from './configuration';
 import { Logger } from './logger';
 import { OpenFileCommandQuickPickItem } from './quickPick';
 import * as path from 'path';
@@ -10,8 +10,10 @@ import * as glob from 'glob';
 
 export class ShowRelatedCommand extends EditorCommand {
 
-    constructor() {
+    rulesets: IRuleset[];
+    constructor(context: ExtensionContext) {
         super(Commands.Show);
+        this.rulesets = require(context.asAbsolutePath('./rulesets.json'));
     }
 
     async execute(editor: TextEditor, edit: TextEditorEdit) {
@@ -25,13 +27,32 @@ export class ShowRelatedCommand extends EditorCommand {
             const language = editor.document.languageId;
 
             const cfg = workspace.getConfiguration('').get<IConfig>('findrelated');
-            const rules = cfg.rules.filter(_ => _.extension === extension && (!_.language || _.language === language) ||
+
+            const applied = Arrays.union(cfg.applyRulesets, cfg.applyWorkspaceRulesets);
+            if (!applied.length) {
+                Logger.warn('[FindRelated.ShowRelatedCommand]', 'No specified rulesets');
+                return undefined;
+            }
+
+            const rules = [];
+            const userDefinedRulesets = cfg.rulesets || [];
+            const workspaceDefinedRulesets = cfg.workspaceRulesets || [];
+            for (const name of applied) {
+                const ruleset = workspaceDefinedRulesets.find(_ => _.name === name) ||
+                    userDefinedRulesets.find(_ => _.name === name) ||
+                    this.rulesets.find(_ => _.name === name);
+                if (!ruleset) continue;
+
+                rules.push(...ruleset.rules);
+            }
+
+            const activeRules = rules.filter(_ => _.extension === extension && (!_.language || _.language === language) ||
                 _.language === language && (!_.extension || _.extension === extension));
 
-            if (!rules.length) return undefined;
+            if (!activeRules.length) return undefined;
 
             const pathsMap = new Map() as Map<string, string[]>;
-            for (const rule of rules) {
+            for (const rule of activeRules) {
                 for (const locator of rule.locators) {
                     let directory: string;
                     switch (locator.relativeTo) {

@@ -1,0 +1,35 @@
+[
+    {
+        "name": "aurelia",
+        "rules": [
+            {
+                "language": "html",
+                "extension": ".html",
+                "locators": [{
+                    "pattern": "$(file).ts",
+                    "relativeTo": "file"
+                },
+                {
+                    "pattern": "$(file).js",
+                    "relativeTo": "file"
+                }]
+            },
+            {
+                "language": "typescript",
+                "extension": ".ts",
+                "locators": [{
+                    "pattern": "$(file).html",
+                    "relativeTo": "file"
+                }]
+            },
+            {
+                "language": "javascript",
+                "extension": ".js",
+                "locators": [{
+                    "pattern": "$(file).html",
+                    "relativeTo": "file"
+                }]
+            }
+        ]
+    }
+]

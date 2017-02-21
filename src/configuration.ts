@@ -6,18 +6,22 @@ export const RelativeTo = {
     Root: 'root' as RelativeTo
 };
 
-export interface IRelatedLocator {
+export interface IRuleLocator {
     pattern: string;
     relativeTo: RelativeTo;
     path?: string;
 }
 
-export interface IRelatedRule {
+export interface IRule {
     extension?: string;
     language?: string;
-    locators: IRelatedLocator[];
+    locators: IRuleLocator[];
 }
 
+export interface IRuleset {
+    name: string;
+    rules: IRule[];
+}
 
 export type OutputLevel = 'silent' | 'errors' | 'verbose';
 export const OutputLevel = {
@@ -34,7 +38,10 @@ export interface IAdvancedConfig {
 }
 
 export interface IConfig {
-    rules: IRelatedRule[];
+    rulesets: IRuleset[];
+    workspaceRulesets: IRuleset[];
+    applyRulesets: string[];
+    applyWorkspaceRulesets: string[];
     autoOpen: boolean;
     openPreview: boolean;
     advanced: IAdvancedConfig;

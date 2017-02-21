@@ -2,6 +2,7 @@
 import { commands, QuickPickItem, Uri, window, workspace } from 'vscode';
 import { Commands } from './commands';
 import { BuiltInCommands } from './constants';
+import { Logger } from './logger';
 import * as path from 'path';
 
 export class CommandQuickPickItem implements QuickPickItem {
@@ -42,6 +43,7 @@ export class OpenFileCommandQuickPickItem extends CommandQuickPickItem {
             }
         }
         catch (ex) {
+            Logger.error('OpenFileCommandQuickPickItem.execute', ex);
             return undefined;
         }
     }

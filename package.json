@@ -1,18 +1,17 @@
 {
     "name": "find-related",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "author": {
         "name": "Eric Amodio",
         "email": "eamodio@gmail.com"
     },
     "publisher": "eamodio",
-    "preview": true,
     "engines": {
         "vscode": "^1.8.0"
     },
     "license": "SEE LICENSE IN LICENSE",
     "displayName": "Find Related",
-    "description": "Finds files related to the current file based on configuration rules",
+    "description": "Finds files related to the current file based on user-defined configuration rules",
     "categories": [
         "Other"
     ],
@@ -28,7 +27,7 @@
         "theme": "dark"
     },
     "icon": "images/icon.svg",
-    "preview": false,
+    "preview": true,
     "homepage": "https://github.com/eamodio/vscode-find-related/blob/master/README.md",
     "bugs": {
         "url": "https://github.com/eamodio/vscode-find-related/issues"
@@ -43,90 +42,171 @@
             "type": "object",
             "title": "Open Related configuration",
             "properties": {
-                "findrelated.rules": {
+                "findrelated.rulesets": {
                     "type": "array",
-                    "default": [
-                        {
-                            "language": "html",
-                            "extension": ".html",
-                            "locators": [{
-                                "pattern": "$(file).ts",
-                                "relativeTo": "file"
-                            },
-                            {
-                                "pattern": "$(file).js",
-                                "relativeTo": "file"
-                            }]
-                        },
-                        {
-                            "language": "typescript",
-                            "extension": ".ts",
-                            "locators": [{
-                                "pattern": "$(file).html",
-                                "relativeTo": "file"
-                            }]
-                        },
-                        {
-                            "language": "javascript",
-                            "extension": ".js",
-                            "locators": [{
-                                "pattern": "$(file).html",
-                                "relativeTo": "file"
-                            }]
-                        }
-                    ],
+                    "default": [],
                     "items": {
                         "type": "object",
                         "required": [
-                            "locators"
+                            "name",
+                            "rules"
                         ],
                         "properties": {
-                            "extension": {
+                            "name": {
                                 "type": "string",
-                                "description": "Specifies the file extension to which this rule applies"
+                                "description": "Specifies the name of the ruleset"
                             },
-                            "language": {
-                                "type": "string",
-                                "description": "Specifies the language to which this rule applies"
-                            },
-                            "locators": {
+                            "rules": {
                                 "type": "array",
                                 "items": {
                                     "type": "object",
                                     "required": [
-                                        "pattern",
-                                        "relativeTo"
+                                        "locators"
                                     ],
                                     "properties": {
-                                        "pattern": {
+                                        "extension": {
                                             "type": "string",
-                                            "description": "Specifies the glob pattern to use to search for related files. `$(file)` is a token replacement for the active file without its extension"
+                                            "description": "Specifies the file extension to which this rule applies"
                                         },
-                                        "relativeTo": {
+                                        "language": {
                                             "type": "string",
-                                            "default": "file",
-                                            "enum": [
-                                                "file",
-                                                "root"
-                                            ],
-                                            "description": "Specifies the what the provided path is relative to. `file` is relative to the current file. `root` is relative to the workspace"
+                                            "description": "Specifies the language to which this rule applies"
                                         },
-                                        "path": {
-                                            "type": "string",
-                                            "description": "Specifies the path to search for related files. Must be specified when `relativeTo` is `root`",
-                                            "dependencies": [
-                                                "relativeTo"
-                                            ]
+                                        "locators": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "required": [
+                                                    "pattern",
+                                                    "relativeTo"
+                                                ],
+                                                "properties": {
+                                                    "pattern": {
+                                                        "type": "string",
+                                                        "description": "Specifies the glob pattern to use to search for related files. `$(file)` is a token replacement for the active file without its extension"
+                                                    },
+                                                    "relativeTo": {
+                                                        "type": "string",
+                                                        "default": "file",
+                                                        "enum": [
+                                                            "file",
+                                                            "root"
+                                                        ],
+                                                        "description": "Specifies the what the provided path is relative to. `file` is relative to the current file. `root` is relative to the workspace"
+                                                    },
+                                                    "path": {
+                                                        "type": "string",
+                                                        "description": "Specifies the path to search for related files. Must be specified when `relativeTo` is `root`",
+                                                        "dependencies": [
+                                                            "relativeTo"
+                                                        ]
+                                                    }
+                                                },
+                                                "uniqueItems": true
+                                            },
+                                            "description": "Specifies the list of locators that will be used to search for related files"
                                         }
                                     },
                                     "uniqueItems": true
                                 },
-                                "description": "Specifies the list of locators that will be used to search for related files"
+                                "description": "Specifies the rules to find related files"
                             }
-                        },
+                        }
+                    },
+                    "description": "Defines rulesets that can be used find related files; Will be merged with built-in rulesets"
+                },
+                "findrelated.workspaceRulesets": {
+                    "type": "array",
+                    "default": [],
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "name",
+                            "rules"
+                        ],
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "Specifies the name of the ruleset"
+                            },
+                            "rules": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "required": [
+                                        "locators"
+                                    ],
+                                    "properties": {
+                                        "extension": {
+                                            "type": "string",
+                                            "description": "Specifies the file extension to which this rule applies"
+                                        },
+                                        "language": {
+                                            "type": "string",
+                                            "description": "Specifies the language to which this rule applies"
+                                        },
+                                        "locators": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "required": [
+                                                    "pattern",
+                                                    "relativeTo"
+                                                ],
+                                                "properties": {
+                                                    "pattern": {
+                                                        "type": "string",
+                                                        "description": "Specifies the glob pattern to use to search for related files. `$(file)` is a token replacement for the active file without its extension"
+                                                    },
+                                                    "relativeTo": {
+                                                        "type": "string",
+                                                        "default": "file",
+                                                        "enum": [
+                                                            "file",
+                                                            "root"
+                                                        ],
+                                                        "description": "Specifies the what the provided path is relative to. `file` is relative to the current file. `root` is relative to the workspace"
+                                                    },
+                                                    "path": {
+                                                        "type": "string",
+                                                        "description": "Specifies the path to search for related files. Must be specified when `relativeTo` is `root`",
+                                                        "dependencies": [
+                                                            "relativeTo"
+                                                        ]
+                                                    }
+                                                },
+                                                "uniqueItems": true
+                                            },
+                                            "description": "Specifies the list of locators that will be used to search for related files"
+                                        }
+                                    },
+                                    "uniqueItems": true
+                                },
+                                "description": "Specifies the rules to find related files"
+                            }
+                        }
+                    },
+                    "description": "Defines workspace-specific rulesets that can be used find related files; Will be merged with built-in rulesets"
+                },
+                "findrelated.applyRulesets": {
+                    "type": "array",
+                    "default": [
+                        "aurelia"
+                    ],
+                    "items": {
+                        "type": "string",
                         "uniqueItems": true
                     },
-                    "description": "Specifies the rules to find related files"
+                    "description": "Specifies the rulesets to use to find related files"
+                },
+                "findrelated.applyWorkspaceRulesets": {
+                    "type": "array",
+                    "default": [],
+                    "items": {
+                        "type": "string",
+                        "uniqueItems": true
+                    },
+                    "description": "Specifies the workspace-specific rulesets to use find related files"
                 },
                 "findrelated.autoOpen": {
                     "type": "boolean",
@@ -183,12 +263,14 @@
     },
     "dependencies": {
         "glob": "^7.1.1",
-        "lodash.isequal": "^4.5.0"
+        "lodash.isequal": "^4.5.0",
+        "lodash.union": "^4.6.0"
     },
     "devDependencies": {
         "@types/glob": "^5.0.30",
-        "@types/node": "^7.0.5",
+        "@types/lodash": "^4.14.52",
         "@types/mocha": "^2.2.39",
+        "@types/node": "^7.0.5",
         "mocha": "^3.2.0",
         "tslint": "^4.4.2",
         "typescript": "^2.1.6",
