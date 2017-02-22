@@ -92,6 +92,7 @@ export class ShowRelatedCommand extends EditorCommand {
             if (!files.length) return undefined;
 
             const items = Arrays.flatten(files.map(_ => _.matches.map(m => new OpenFileCommandQuickPickItem(_.cwd, m))));
+            if (!items.length) return undefined;
 
             if (cfg.autoOpen && items.length === 1) {
                 return items[0].execute(cfg.openPreview);
