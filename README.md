@@ -2,47 +2,68 @@
 
 Finds files related to the current file based on user-defined configuration rules.
 
+Please send PRs for updated rulesets for inclusion!
+
 ### Built-in rulesets
 ```
 [
     {
+        "name": "csharp",
+        "rules": [
+            {
+                "pattern": "(.*)\\.(?:cs|resx|settings)$",
+                "locators": ["$1.designer.cs"]
+            },
+            {
+                "pattern": "(.*)\\.designer\\.cs$",
+                "locators": ["{$1.cs,$1.resx,$1.settings}"]
+            }
+        ]
+    },
+    {
+        "name": "aspnet",
+        "rules": [
+            {
+                "pattern": "(.*)\\.(?:aspx|ascx|asax|ashx|asmx)$",
+                "locators": ["{$0.cs,$0.designer.cs}"]
+            },
+            {
+                "pattern": "(.*)\\.(aspx|ascx|asax|ashx|asmx)(\\.designer)?(\\.cs)$",
+                "locators": ["{$1.$2,$1$3$4}"]
+            }
+        ]
+    },
+    {
+        "name": "aspnet-mvc",
+        "rules": [
+            {
+                "pattern": "(.*)\/views\/(.*?)(?:\/.*)?\\.cshtml$",
+                "locators": ["$1/**/Controllers/**/$2Controller.cs"]
+            },
+            {
+                "pattern": "(.*)/controllers/(.*)/?(.*)controller\\.cs$",
+                "locators": ["$1/**/Views/**/$2/**/*.cshtml"]
+            }
+        ]
+    },
+    {
         "name": "aurelia",
         "rules": [
             {
-                "language": "html",
-                "extension": ".html",
-                "locators": [{
-                    "pattern": "$(file).ts",
-                    "relativeTo": "file"
-                },
-                {
-                    "pattern": "$(file).js",
-                    "relativeTo": "file"
-                }]
+                "pattern": "(.*)\\.html$",
+                "locators": ["{$1.ts,$1.js}"]
             },
             {
-                "language": "typescript",
-                "extension": ".ts",
-                "locators": [{
-                    "pattern": "$(file).html",
-                    "relativeTo": "file"
-                }]
-            },
-            {
-                "language": "javascript",
-                "extension": ".js",
-                "locators": [{
-                    "pattern": "$(file).html",
-                    "relativeTo": "file"
-                }]
+                "pattern": "(.*)\\.(?:ts|js)$",
+                "locators": ["$1.html"]
             }
         ]
     }
 ]
 ```
 
-`pattern` is a glob pattern
-`$(file)` is a token replacement for the active file without its extension
+`pattern` - specifies a regex pattern to which this rule applies; Capture groups can be used as replacements in the `locators`
+`locators` - specifies the list of glob pattern locators that will be used to search for related files; `$[0-9]` can be use as replacement tokens from the capture groups in the `pattern`
 
 ## Features
 

@@ -1,27 +1,5 @@
 'use strict';
-
-export type RelativeTo = 'file' | 'root';
-export const RelativeTo = {
-    File: 'file' as RelativeTo,
-    Root: 'root' as RelativeTo
-};
-
-export interface IRuleLocator {
-    pattern: string;
-    relativeTo: RelativeTo;
-    path?: string;
-}
-
-export interface IRule {
-    extension?: string;
-    language?: string;
-    locators: IRuleLocator[];
-}
-
-export interface IRuleset {
-    name: string;
-    rules: IRule[];
-}
+import { IRuleset } from './rules';
 
 export type OutputLevel = 'silent' | 'errors' | 'verbose';
 export const OutputLevel = {

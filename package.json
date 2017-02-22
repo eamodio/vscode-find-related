@@ -1,6 +1,6 @@
 {
     "name": "find-related",
-    "version": "0.0.3",
+    "version": "0.1.0",
     "author": {
         "name": "Eric Amodio",
         "email": "eamodio@gmail.com"
@@ -61,50 +61,21 @@
                                 "items": {
                                     "type": "object",
                                     "required": [
+                                        "pattern",
                                         "locators"
                                     ],
                                     "properties": {
-                                        "extension": {
+                                        "pattern": {
                                             "type": "string",
-                                            "description": "Specifies the file extension to which this rule applies"
-                                        },
-                                        "language": {
-                                            "type": "string",
-                                            "description": "Specifies the language to which this rule applies"
+                                            "description": "Specifies a regex pattern to which this rule applies; Capture groups can be used as replacements in the `locators`"
                                         },
                                         "locators": {
                                             "type": "array",
                                             "items": {
-                                                "type": "object",
-                                                "required": [
-                                                    "pattern",
-                                                    "relativeTo"
-                                                ],
-                                                "properties": {
-                                                    "pattern": {
-                                                        "type": "string",
-                                                        "description": "Specifies the glob pattern to use to search for related files. `$(file)` is a token replacement for the active file without its extension"
-                                                    },
-                                                    "relativeTo": {
-                                                        "type": "string",
-                                                        "default": "file",
-                                                        "enum": [
-                                                            "file",
-                                                            "root"
-                                                        ],
-                                                        "description": "Specifies the what the provided path is relative to. `file` is relative to the current file. `root` is relative to the workspace"
-                                                    },
-                                                    "path": {
-                                                        "type": "string",
-                                                        "description": "Specifies the path to search for related files. Must be specified when `relativeTo` is `root`",
-                                                        "dependencies": [
-                                                            "relativeTo"
-                                                        ]
-                                                    }
-                                                },
+                                                "type": "string",
                                                 "uniqueItems": true
                                             },
-                                            "description": "Specifies the list of locators that will be used to search for related files"
+                                            "description": "Specifies the list of glob pattern locators that will be used to search for related files; `$[0-9]` can be use as replacement tokens from the capture groups in the `pattern`"
                                         }
                                     },
                                     "uniqueItems": true
@@ -134,50 +105,21 @@
                                 "items": {
                                     "type": "object",
                                     "required": [
+                                        "pattern",
                                         "locators"
                                     ],
                                     "properties": {
-                                        "extension": {
+                                        "pattern": {
                                             "type": "string",
-                                            "description": "Specifies the file extension to which this rule applies"
-                                        },
-                                        "language": {
-                                            "type": "string",
-                                            "description": "Specifies the language to which this rule applies"
+                                            "description": "Specifies a regex pattern to which this rule applies; Capture groups can be used as replacements in the `locators`"
                                         },
                                         "locators": {
                                             "type": "array",
                                             "items": {
-                                                "type": "object",
-                                                "required": [
-                                                    "pattern",
-                                                    "relativeTo"
-                                                ],
-                                                "properties": {
-                                                    "pattern": {
-                                                        "type": "string",
-                                                        "description": "Specifies the glob pattern to use to search for related files. `$(file)` is a token replacement for the active file without its extension"
-                                                    },
-                                                    "relativeTo": {
-                                                        "type": "string",
-                                                        "default": "file",
-                                                        "enum": [
-                                                            "file",
-                                                            "root"
-                                                        ],
-                                                        "description": "Specifies the what the provided path is relative to. `file` is relative to the current file. `root` is relative to the workspace"
-                                                    },
-                                                    "path": {
-                                                        "type": "string",
-                                                        "description": "Specifies the path to search for related files. Must be specified when `relativeTo` is `root`",
-                                                        "dependencies": [
-                                                            "relativeTo"
-                                                        ]
-                                                    }
-                                                },
+                                                "type": "string",
                                                 "uniqueItems": true
                                             },
-                                            "description": "Specifies the list of locators that will be used to search for related files"
+                                            "description": "Specifies the list of glob pattern locators that will be used to search for related files; `$[0-9]` can be use as replacement tokens from the capture groups in the `pattern`"
                                         }
                                     },
                                     "uniqueItems": true
@@ -191,7 +133,10 @@
                 "findrelated.applyRulesets": {
                     "type": "array",
                     "default": [
-                        "aurelia"
+                        "aspnet",
+                        "aspnet-mvc",
+                        "aurelia",
+                        "csharp"
                     ],
                     "items": {
                         "type": "string",
@@ -210,7 +155,7 @@
                 },
                 "findrelated.autoOpen": {
                     "type": "boolean",
-                    "default": true,
+                    "default": false,
                     "description": "Specifies whether to automatically open the related file if there is only 1 result"
                 },
                 "findrelated.openPreview": {
