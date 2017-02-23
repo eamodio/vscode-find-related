@@ -4,6 +4,10 @@ Finds files related to the current file based on user-defined configuration rule
 
 Please send PRs for updated rulesets for inclusion!
 
+## Screenshot
+
+![FindRelated screenshot](https://raw.githubusercontent.com/eamodio/vscode-find-related/master/images/screenshot.png)
+
 ### Built-in rulesets
 ```
 [
