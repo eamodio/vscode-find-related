@@ -136,7 +136,8 @@
                         "aspnet",
                         "aspnet-mvc",
                         "aurelia",
-                        "csharp"
+                        "csharp",
+                        "minified"
                     ],
                     "items": {
                         "type": "string",
