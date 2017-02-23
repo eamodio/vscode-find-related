@@ -43,7 +43,7 @@ export class ShowRelatedCommand extends EditorCommand {
             if (!activeRules.length) return undefined;
 
             const cancellation = new CancellationTokenSource();
-            const itemsPromise = ShowRelatedCommand.getRelatedFileItems(activeRules, cancellation);
+            const itemsPromise = ShowRelatedCommand.getRelatedFileItems(activeRules, fileName, cancellation);
 
             // Show a quick pick while we are waiting -- gives decent feedback but we will cancel it to update the placeholder text
             let selection = await window.showQuickPick(itemsPromise, {
@@ -74,14 +74,14 @@ export class ShowRelatedCommand extends EditorCommand {
         }
     }
 
-    private static async getRelatedFileItems(rules: CompiledRule[], cancellation?: CancellationTokenSource): Promise<OpenFileCommandQuickPickItem[]> {
+    private static async getRelatedFileItems(rules: CompiledRule[], fileName: string, cancellation?: CancellationTokenSource): Promise<OpenFileCommandQuickPickItem[]> {
         const files = await Promise.all(findRelatedFiles(rules, workspace.rootPath));
         if (!files.length) {
             cancellation && cancellation.cancel();
             return undefined;
         }
 
-        const items = Arrays.flatten(files.map(_ => _.matches.map(m => new OpenFileCommandQuickPickItem(_.cwd, m))));
+        const items = Arrays.flatten(files.map(_ => _.matches.filter(m => m !== fileName).map(m => new OpenFileCommandQuickPickItem(_.cwd, m))));
 
         cancellation && cancellation.cancel();
         return items;
