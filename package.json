@@ -218,7 +218,7 @@
         "@types/node": "^7.0.5",
         "mocha": "^3.2.0",
         "tslint": "^4.4.2",
-        "typescript": "^2.1.6",
+        "typescript": "^2.2.1",
         "vscode": "^1.0.3"
     }
 }
