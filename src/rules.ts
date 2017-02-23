@@ -4,6 +4,7 @@ import { IConfig } from './configuration';
 import { Logger } from './logger';
 import * as glob from 'glob';
 
+const pathNormalizer = /\\/g;
 const tokenReplacer = /(\$([0-9]))/g;
 
 export interface IRule {
@@ -97,4 +98,8 @@ export function* findRelatedFiles(rules: CompiledRule[], workspace: string): Ite
     for (const rule of rules) {
         yield *rule.find(workspace);
     }
+}
+
+export function normalizePath(fileName: string) {
+    return fileName.replace(pathNormalizer, '/');
 }

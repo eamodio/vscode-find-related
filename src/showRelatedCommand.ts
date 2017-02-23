@@ -5,7 +5,7 @@ import { Commands, EditorCommand } from './commands';
 import { IConfig } from './configuration';
 import { Logger } from './logger';
 import { OpenFileCommandQuickPickItem } from './quickPickItems';
-import { CompiledRule, compileRules, IRuleset, findRelatedFiles } from './rules';
+import { CompiledRule, compileRules, IRuleset, findRelatedFiles, normalizePath } from './rules';
 import * as path from 'path';
 
 export class ShowRelatedCommand extends EditorCommand {
@@ -37,13 +37,13 @@ export class ShowRelatedCommand extends EditorCommand {
         if (!editor || !editor.document || editor.document.isUntitled) return;
 
         try {
-            const fileName = path.relative(workspace.rootPath, editor.document.fileName);
+            const fileName = normalizePath(path.relative(workspace.rootPath, editor.document.fileName));
 
             const activeRules = this.rules.filter(_ => _.match(fileName));
             if (!activeRules.length) return undefined;
 
             const cancellation = new CancellationTokenSource();
-            const itemsPromise = ShowRelatedCommand.getRelatedFileItems(fileName, activeRules, cancellation);
+            const itemsPromise = ShowRelatedCommand.getRelatedFileItems(activeRules, cancellation);
 
             // Show a quick pick while we are waiting -- gives decent feedback but we will cancel it to update the placeholder text
             let selection = await window.showQuickPick(itemsPromise, {
@@ -74,7 +74,7 @@ export class ShowRelatedCommand extends EditorCommand {
         }
     }
 
-    private static async getRelatedFileItems(fileName: string, rules: CompiledRule[], cancellation?: CancellationTokenSource): Promise<OpenFileCommandQuickPickItem[]> {
+    private static async getRelatedFileItems(rules: CompiledRule[], cancellation?: CancellationTokenSource): Promise<OpenFileCommandQuickPickItem[]> {
         const files = await Promise.all(findRelatedFiles(rules, workspace.rootPath));
         if (!files.length) {
             cancellation && cancellation.cancel();
