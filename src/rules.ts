@@ -24,13 +24,13 @@ export class CompiledRule implements IRule {
 
     private _match: RegExpExecArray;
 
-    constructor(rule: IRule) {
+    constructor(rule: IRule, private rulesetName: string) {
         Object.assign(this, rule);
         try {
             this.matcher = new RegExp(rule.pattern, 'i');
         }
         catch (ex) {
-            Logger.error('CompiledRule.ctor', ex);
+            Logger.error(`CompiledRule(${this.rulesetName}).ctor`, ex, rule.pattern);
         }
     }
 
@@ -38,8 +38,9 @@ export class CompiledRule implements IRule {
         if (!this.matcher) return false;
         try {
             this._match = this.matcher.exec(fileName);
-            if (!this._match || !this._match.length) return false;
-            return true;
+            const matches = !!(this._match && this._match.length);
+            Logger.log(`CompiledRule(${this.rulesetName}).match(${fileName})=${matches}`, this.pattern);
+            return matches;
         }
         catch (ex) {
             Logger.error('CompiledRule.match', ex);
@@ -50,7 +51,7 @@ export class CompiledRule implements IRule {
     *find(workspace: string): Iterable<Promise<{ cwd: string, matches: string[] }>> {
         for (const locator of this.locators) {
             const globPattern = CompiledRule.replaceTokens(locator, this._match);
-            Logger.log('CompiledRule.find', `globPattern=${globPattern}`);
+            Logger.log(`CompiledRule(${this.rulesetName}).find(${workspace})`, `globPattern=${globPattern}`);
             yield CompiledRule.globAsync(globPattern, { cwd: workspace, nocase: true });
         }
     }
@@ -88,7 +89,7 @@ export function compileRules(rulesets: IRuleset[], cfg: IConfig): CompiledRule[]
             rulesets.find(_ => _.name === name);
         if (!ruleset) continue;
 
-        rules.push(...ruleset.rules.map(_ => new CompiledRule(_)));
+        rules.push(...ruleset.rules.map(_ => new CompiledRule(_, ruleset.name)));
     }
 
     return rules;
