@@ -40,7 +40,7 @@
     "contributes": {
         "configuration": {
             "type": "object",
-            "title": "Open Related configuration",
+            "title": "Find Related configuration",
             "properties": {
                 "findrelated.rulesets": {
                     "type": "array",
