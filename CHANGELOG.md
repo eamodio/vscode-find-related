@@ -1,5 +1,8 @@
 ## Release Notes
 
+### 0.2.0
+- Dramatic performance improvement with file searches
+
 ### 0.1.2
 - Adds a screenshot to the marketplace description
 - Updates the minified files ruleset
