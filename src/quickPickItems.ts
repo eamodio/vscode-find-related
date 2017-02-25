@@ -24,21 +24,20 @@ export class OpenFileCommandQuickPickItem extends CommandQuickPickItem {
     description: string;
     detail: string;
 
-    constructor(private cwd: string, private fileName: string) {
+    constructor(private uri: Uri, workspace: string) {
         super({
-            label: `$(file-symlink-file) ${path.basename(fileName)}`,
-            description: path.dirname(fileName)
+            label: `$(file-symlink-file) ${path.basename(uri.fsPath)}`,
+            description: path.relative(workspace, path.dirname(uri.fsPath))
         }, undefined, undefined);
     }
 
     async execute(preview: boolean = true): Promise<{}> {
         try {
-            const uri = Uri.file(path.resolve(this.cwd, this.fileName));
             if (preview) {
-                return commands.executeCommand(BuiltInCommands.Open, uri);
+                return commands.executeCommand(BuiltInCommands.Open, this.uri);
             }
             else {
-                const document = await workspace.openTextDocument(uri);
+                const document = await workspace.openTextDocument(this.uri);
                 return await window.showTextDocument(document, 1);
             }
         }

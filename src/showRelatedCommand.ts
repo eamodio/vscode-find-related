@@ -75,13 +75,14 @@ export class ShowRelatedCommand extends EditorCommand {
     }
 
     private static async getRelatedFileItems(rules: CompiledRule[], fileName: string, cancellation?: CancellationTokenSource): Promise<OpenFileCommandQuickPickItem[]> {
-        const files = await Promise.all(findRelatedFiles(rules, workspace.rootPath));
+        const rootPath = workspace.rootPath;
+        const files = await Promise.all(findRelatedFiles(rules, rootPath));
         if (!files.length) {
             cancellation && cancellation.cancel();
             return undefined;
         }
 
-        const items = Arrays.flatten(files.map(_ => _.matches.filter(m => m !== fileName).map(m => new OpenFileCommandQuickPickItem(_.cwd, m))));
+        const items = Arrays.flatten(files.map(_ => _.filter(uri => uri.fsPath !== fileName).map(uri => new OpenFileCommandQuickPickItem(uri, rootPath))));
 
         cancellation && cancellation.cancel();
         return items;

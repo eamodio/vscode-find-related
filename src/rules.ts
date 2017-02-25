@@ -1,8 +1,9 @@
 'use strict';
 import { Arrays } from './system';
+import { CancellationToken, Uri, workspace } from 'vscode';
 import { IConfig } from './configuration';
 import { Logger } from './logger';
-import * as glob from 'glob';
+//import * as glob from 'glob';
 
 const pathNormalizer = /\\/g;
 const tokenReplacer = /(\$([0-9]))/g;
@@ -48,11 +49,12 @@ export class CompiledRule implements IRule {
         }
     }
 
-    *find(workspace: string): Iterable<Promise<{ cwd: string, matches: string[] }>> {
+    *find(workspace: string): Iterable<Promise<Uri[]>> {
         for (const locator of this.locators) {
             const globPattern = CompiledRule.replaceTokens(locator, this._match);
             Logger.log(`CompiledRule(${this.rulesetName}).find(${workspace})`, `globPattern=${globPattern}`);
-            yield CompiledRule.globAsync(globPattern, { cwd: workspace, nocase: true });
+            //yield CompiledRule.globAsync(globPattern, { cwd: workspace, nocase: true });
+            yield CompiledRule.findFilesAsync(globPattern);
         }
     }
 
@@ -60,20 +62,21 @@ export class CompiledRule implements IRule {
         return pattern.replace(tokenReplacer, (match: string, p1: string, p2: string) => ruleMatch[+p2]);
     }
 
-    private static async globAsync(pattern: string, options?: glob.IOptions): Promise<{ cwd: string, matches: string[] }> {
-        return new Promise<{ cwd: string, matches: string[] }>((resolve, reject) => {
-            glob(pattern, options, (err: Error, matches: string[]) => {
-                if (err) {
-                    reject(err);
-                    return;
-                }
-                resolve({
-                    cwd: options.cwd,
-                    matches: matches
-                });
-            });
-        });
+    private static async findFilesAsync(pattern: string, maxResults?: number, token?: CancellationToken): Promise<Uri[]> {
+        return await workspace.findFiles(pattern, undefined, maxResults, token);
     }
+
+    // private static async globAsync(pattern: string, options?: glob.IOptions): Promise<Uri[]> {
+    //     return new Promise<Uri[]>((resolve, reject) => {
+    //         glob(pattern, options, (err: Error, matches: string[]) => {
+    //             if (err) {
+    //                 reject(err);
+    //                 return;
+    //             }
+    //             resolve(matches.map(_ => Uri.file(_)));
+    //         });
+    //     });
+    // }
 }
 
 export function compileRules(rulesets: IRuleset[], cfg: IConfig): CompiledRule[] {
@@ -95,7 +98,7 @@ export function compileRules(rulesets: IRuleset[], cfg: IConfig): CompiledRule[]
     return rules;
 }
 
-export function* findRelatedFiles(rules: CompiledRule[], workspace: string): Iterable<Promise<{ cwd: string, matches: string[] }>> {
+export function* findRelatedFiles(rules: CompiledRule[], workspace: string): Iterable<Promise<Uri[]>> {
     for (const rule of rules) {
         yield *rule.find(workspace);
     }
