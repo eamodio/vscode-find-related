@@ -1,5 +1,8 @@
 ## Release Notes
 
+### 0.3.0
+- Adds an extension API that can be used to expand Find Related's capabilities
+
 ### 0.2.0
 - Dramatic performance improvement with file searches
 
