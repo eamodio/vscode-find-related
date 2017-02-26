@@ -8,7 +8,53 @@ Please open new [Github issues](https://github.com/eamodio/vscode-find-related/i
 
 ![FindRelated screenshot](https://raw.githubusercontent.com/eamodio/vscode-find-related/master/images/screenshot.png)
 
-### Built-in rulesets
+## Features
+
+- Provides a command to show a quick pick list of files related to the current file
+
+## Extension Settings
+
+|Name | Description
+|-----|------------
+|`findrelated.rulesets`|Defines rulesets that can be used find related files; Will be merged with `findrelated.workspaceRulesets` and built-in rulesets
+|`findrelated.workspaceRulesets`|Defines workspace-specific rulesets that can be used find related files; Will be merged with `findrelated.rulesets` and built-in rulesets
+|`findrelated.applyRulesets`|Specifies the rulesets to use to find related files
+|`findrelated.applyWorkspaceRules`|Specifies the workspace-specific rulesets to use to find related files
+|`findrelated.autoOpen`|Specifies whether to automatically open the related file if there is only 1 result
+|`findrelated.openPreview`|Specifies whether or not to open the related file in a preview tab
+
+## Extension API
+
+Find Related exports an API that can be used to expand its capabilities.
+
+#### Example
+
+```
+let findRelated = extensions.getExtension('eamodio.findrelated');
+let api = findRelated.exports;
+
+let subscription1 = api.registerRuleset('static-rule', [
+    {
+        pattern: /* string -- regex pattern here */,
+        locators: [/* string -- glob patterns here */]
+    }
+]);
+
+let subscription2 = api.registerRuleset('dynamic-rule', [
+    {
+        match: (fileName: string) => /* matching logic here -- return a boolean */,
+        provideRelated: (fileName: string, document: TextDocument, rootPath: string) => {
+            return Promise.resolve([/* related uris here */]);
+        }
+    }
+]);
+
+// To remove a registered ruleset, just dispose its subscription
+subscription1.dispose();
+subscription2.dispose();
+```
+
+## Built-in rulesets
 ```
 [
     {
@@ -81,21 +127,6 @@ Please open new [Github issues](https://github.com/eamodio/vscode-find-related/i
 
 `pattern` - specifies a regex pattern to which this rule applies; Capture groups can be used as replacements in the `locators`
 `locators` - specifies the list of glob pattern locators that will be used to search for related files; `$[0-9]` can be use as replacement tokens from the capture groups in the `pattern`
-
-## Features
-
-- Provides command to show related files
-
-## Extension Settings
-
-|Name | Description
-|-----|------------
-|`findrelated.rulesets`|Defines rulesets that can be used find related files; Will be merged with `findrelated.workspaceRulesets` and built-in rulesets
-|`findrelated.workspaceRulesets`|Defines workspace-specific rulesets that can be used find related files; Will be merged with `findrelated.rulesets` and built-in rulesets
-|`findrelated.applyRulesets`|Specifies the rulesets to use to find related files
-|`findrelated.applyWorkspaceRules`|Specifies the workspace-specific rulesets to use to find related files
-|`findrelated.autoOpen`|Specifies whether to automatically open the related file if there is only 1 result
-|`findrelated.openPreview`|Specifies whether or not to open the related file in a preview tab
 
 ## Known Issues
 

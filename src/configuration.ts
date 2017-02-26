@@ -1,5 +1,5 @@
 'use strict';
-import { IRuleset } from './rules';
+import { IRuleset } from './rulesProvider';
 
 export type OutputLevel = 'silent' | 'errors' | 'verbose';
 export const OutputLevel = {
