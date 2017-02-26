@@ -1,7 +1,8 @@
 ## Release Notes
 
-### 0.3.1
+### 0.3.2
 - Adds an extension API that can be used to expand Find Related's capabilities
+- Adds c/c++ ruleset
 
 ### 0.2.0
 - Dramatic performance improvement with file searches
