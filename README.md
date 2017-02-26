@@ -30,7 +30,7 @@ Find Related exports an API that can be used to expand its capabilities.
 #### Example
 
 ```
-let findRelated = extensions.getExtension('eamodio.findrelated');
+let findRelated = extensions.getExtension('eamodio.find-related');
 let api = findRelated.exports;
 
 let subscription1 = api.registerRuleset('static-rule', [
