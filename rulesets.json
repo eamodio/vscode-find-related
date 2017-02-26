@@ -9,6 +9,19 @@
         ]
     },
     {
+        "name": "c/c++",
+        "rules": [
+            {
+                "pattern": "(.*)\\.(?:c|cpp)$",
+                "locators": ["$1.h"]
+            },
+            {
+                "pattern": "(.*)\\.h$",
+                "locators": ["{$1.c,$1.cpp}"]
+            }
+        ]
+    },
+    {
         "name": "csharp",
         "rules": [
             {

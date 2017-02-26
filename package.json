@@ -136,6 +136,7 @@
                         "aspnet",
                         "aspnet-mvc",
                         "aurelia",
+                        "c/c++",
                         "csharp",
                         "minified"
                     ],
