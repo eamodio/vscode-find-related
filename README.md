@@ -2,7 +2,7 @@
 
 Finds files related to the current file based on user-defined configuration rules.
 
-Please send PRs for updated rulesets for inclusion!
+Please open new [Github issues](https://github.com/eamodio/vscode-find-related/issues) with any rules you'd like included in the built-in ruleset.
 
 ## Screenshot
 
@@ -11,6 +11,19 @@ Please send PRs for updated rulesets for inclusion!
 ### Built-in rulesets
 ```
 [
+    {
+        "name": "c/c++",
+        "rules": [
+            {
+                "pattern": "(.*)\\.(?:c|cpp)$",
+                "locators": ["$1.h"]
+            },
+            {
+                "pattern": "(.*)\\.h$",
+                "locators": ["{$1.c,$1.cpp}"]
+            }
+        ]
+    },
     {
         "name": "csharp",
         "rules": [
