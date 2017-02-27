@@ -50,7 +50,7 @@ export class Rule implements IRule, IRuleDefinition {
     *provideRelated(fileName: string, document: TextDocument, rootPath: string): IterableIterator<Promise<Uri[]>> {
         for (const locator of this.locators) {
             const globPattern = Rule.replaceTokens(locator, this._match);
-            Logger.log(`Rule(${this.rulesetName}).find(${rootPath})`, `globPattern=${globPattern}`);
+            Logger.log(`Rule(${this.rulesetName}).provideRelated(${fileName}, ${rootPath})`, `globPattern=${globPattern}`);
             //yield Rule.globAsync(globPattern, { cwd: rootPath, nocase: true });
             yield Rule.findFilesAsync(globPattern);
         }
