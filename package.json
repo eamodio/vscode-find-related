@@ -209,13 +209,9 @@
         "vscode:prepublish": "tsc -p ./"
     },
     "dependencies": {
-        "glob": "^7.1.1",
-        "lodash.isequal": "^4.5.0",
         "lodash.union": "^4.6.0"
     },
     "devDependencies": {
-        "@types/glob": "^5.0.30",
-        "@types/lodash": "^4.14.52",
         "@types/mocha": "^2.2.39",
         "@types/node": "^7.0.5",
         "mocha": "^3.2.0",
