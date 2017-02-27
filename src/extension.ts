@@ -1,11 +1,14 @@
 'use strict';
 import { ExtensionContext } from 'vscode';
 import { FindRelatedApi } from './extensionApi';
+import { Logger } from './logger';
 import { RulesProvider } from './rulesProvider';
 import { ShowRelatedCommand } from './showRelatedCommand';
 
 // this method is called when your extension is activated
 export async function activate(context: ExtensionContext) {
+    Logger.configure(context);
+
     const rulesProvider = new RulesProvider(context);
     context.subscriptions.push(rulesProvider);
 
