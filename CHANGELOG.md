@@ -1,5 +1,9 @@
 ## Release Notes
 
+### 0.3.3
+- Fixes logging to clean up on extension deactivate
+- Removes unused dependencies and code
+
 ### 0.3.2
 - Adds an extension API that can be used to expand Find Related's capabilities
 - Adds c/c++ ruleset
@@ -17,10 +21,8 @@
 - Fixes issues on Windows
 
 ### 0.1.0
-
 - Complete rework around regex and regex replacement, rather than extensions
 - Adds new rulesets for csharp, aspnet, and aspnet mvc
 
 ### 0.0.3
-
 - Initial release
