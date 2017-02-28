@@ -38,7 +38,7 @@ export class OpenFileCommandQuickPickItem extends CommandQuickPickItem {
             }
             else {
                 const document = await workspace.openTextDocument(this.uri);
-                return await window.showTextDocument(document, 1);
+                return await window.showTextDocument(document, window.activeTextEditor.viewColumn);
             }
         }
         catch (ex) {
