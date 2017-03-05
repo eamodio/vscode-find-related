@@ -1,5 +1,8 @@
 ## Release Notes
 
+## 0.3.5
+- Fixes issue with output channel logging
+
 ### 0.3.4
 - Opens related files in the same editor group as the current editor
 
