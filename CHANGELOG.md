@@ -1,5 +1,9 @@
 ## Release Notes
 
+## 0.4.0
+- Adds `alt+right arrow` shortcut to open related files in the quick pick menu without closing the quick pick menu
+- Removes Marketplace `Preview` label
+
 ## 0.3.5
 - Fixes issue with output channel logging
 
