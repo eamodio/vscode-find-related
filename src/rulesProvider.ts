@@ -2,6 +2,7 @@
 import { Arrays } from './system';
 import { Disposable, ExtensionContext, TextDocument, Uri, workspace } from 'vscode';
 import { IConfig } from './configuration';
+import { ExtensionKey } from './constants';
 import { Logger } from './logger';
 import { IRule, IRuleDefinition, Rule } from './rule';
 
@@ -81,7 +82,7 @@ export class RulesProvider extends Disposable {
     }
 
     private compileRules(): void {
-        const cfg = workspace.getConfiguration('').get<IConfig>('findrelated');
+        const cfg = workspace.getConfiguration('').get<IConfig>(ExtensionKey);
         const applied = Arrays.union(cfg.applyRulesets, cfg.applyWorkspaceRulesets);
 
         const rules: IRule[] = [];

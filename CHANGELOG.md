@@ -11,7 +11,7 @@
 - Removes unused dependencies and code
 
 ### 0.3.2
-- Adds an extension API that can be used to expand Find Related's capabilities
+- Adds an extension API that can be used to expand Find Related File's capabilities
 - Adds c/c++ ruleset
 
 ### 0.2.0

@@ -1,8 +1,8 @@
 'use strict';
 import { ExtensionContext, OutputChannel, window, workspace } from 'vscode';
 import { IAdvancedConfig } from './configuration';
+import { ExtensionKey } from './constants';
 
-const ConfigurationName = 'findrelated';
 const OutputChannelName = 'FindRelated';
 const ConsolePrefix = `[${OutputChannelName}]`;
 
@@ -18,7 +18,7 @@ let level: OutputLevel = OutputLevel.Silent;
 let output: OutputChannel;
 
 function onConfigurationChanged() {
-    const cfg = workspace.getConfiguration(ConfigurationName).get<IAdvancedConfig>('advanced');
+    const cfg = workspace.getConfiguration(ExtensionKey).get<IAdvancedConfig>('advanced');
 
     if (cfg.debug !== debug || cfg.output.level !== level) {
         debug = cfg.debug;
@@ -50,13 +50,13 @@ export class Logger {
         }
     }
 
-    static error(message?: any, ...params: any[]): void {
+    static error(ex: Error, classOrMethod?: string, ...params: any[]): void {
         if (debug) {
-            console.error(ConsolePrefix, message, ...params);
+            console.error(ConsolePrefix, classOrMethod, ex, ...params);
         }
 
         if (level !== OutputLevel.Silent) {
-            output.appendLine([message, ...params].join(' '));
+            output.appendLine([classOrMethod, ex, ...params].join(' '));
         }
     }
 

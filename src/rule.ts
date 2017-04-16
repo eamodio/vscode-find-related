@@ -29,7 +29,7 @@ export class Rule implements IRule, IRuleDefinition {
             this.matcher = new RegExp(rule.pattern, 'i');
         }
         catch (ex) {
-            Logger.error(`Rule(${this.rulesetName}).ctor`, ex, rule.pattern);
+            Logger.error(ex, `Rule(${this.rulesetName}).ctor`, ex, rule.pattern);
         }
     }
 
@@ -42,7 +42,7 @@ export class Rule implements IRule, IRuleDefinition {
             return matches;
         }
         catch (ex) {
-            Logger.error('Rule.match', ex);
+            Logger.error(ex, 'Rule.match');
             return false;
         }
     }

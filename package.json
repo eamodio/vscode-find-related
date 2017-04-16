@@ -10,14 +10,14 @@
         "vscode": "^1.8.0"
     },
     "license": "SEE LICENSE IN LICENSE",
-    "displayName": "Find Related",
+    "displayName": "Find Related Files",
     "description": "Finds files related to the current file based on user-defined configuration rules",
     "categories": [
         "Other"
     ],
     "keywords": [
-        "related",
         "find",
+        "related",
         "files",
         "open",
         "similar"
@@ -27,7 +27,7 @@
         "theme": "dark"
     },
     "icon": "images/icon.svg",
-    "preview": true,
+    "preview": false,
     "homepage": "https://github.com/eamodio/vscode-find-related/blob/master/README.md",
     "bugs": {
         "url": "https://github.com/eamodio/vscode-find-related/issues"
@@ -40,7 +40,7 @@
     "contributes": {
         "configuration": {
             "type": "object",
-            "title": "Find Related configuration",
+            "title": "Find Related Files configuration",
             "properties": {
                 "findrelated.rulesets": {
                     "type": "array",
@@ -185,7 +185,7 @@
         "commands": [
             {
                 "command": "findrelated.show",
-                "title": "Show Related",
+                "title": "Show Related Files",
                 "category": "Files"
             }
         ],
@@ -194,6 +194,11 @@
                 "command": "findrelated.show",
                 "key": "alt+r",
                 "when": "editorFocus"
+            },
+            {
+                "command": "findrelated.key.right",
+                "key": "alt+right",
+                "when": "findrelated:key:right"
             }
         ]
     },
@@ -212,11 +217,11 @@
         "lodash.union": "^4.6.0"
     },
     "devDependencies": {
-        "@types/mocha": "^2.2.39",
-        "@types/node": "^7.0.5",
+        "@types/mocha": "^2.2.40",
+        "@types/node": "^7.0.12",
         "mocha": "^3.2.0",
-        "tslint": "^4.4.2",
-        "typescript": "^2.2.1",
-        "vscode": "^1.0.3"
+        "tslint": "^4.5.1",
+        "typescript": "^2.3.0",
+        "vscode": "^1.1.0"
     }
 }
