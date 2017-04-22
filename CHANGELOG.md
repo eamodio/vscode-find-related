@@ -1,5 +1,9 @@
 ## Release Notes
 
+## 0.4.1
+- Renames `findrelated.advanced.debug` setting to `findrelated.debug`
+- Renames `findrelated.output.level` setting to `findrelated.outputLevel`
+
 ## 0.4.0
 - Adds `alt+right arrow` shortcut to open related files in the quick pick menu without closing the quick pick menu
 - Removes Marketplace `Preview` label
