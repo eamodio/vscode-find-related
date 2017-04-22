@@ -165,12 +165,12 @@
                     "default": true,
                     "description": "Specifies whether or not to open the related file in a preview tab"
                 },
-                "findrelated.advanced.debug": {
+                "findrelated.debug": {
                     "type": "boolean",
                     "default": false,
                     "description": "Specifies debug mode"
                 },
-                "findrelated.advanced.output.level": {
+                "findrelated.outputLevel": {
                     "type": "string",
                     "default": "silent",
                     "enum": [

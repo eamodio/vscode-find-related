@@ -1,6 +1,6 @@
 'use strict';
 import { ExtensionContext, OutputChannel, window, workspace } from 'vscode';
-import { IAdvancedConfig } from './configuration';
+import { IConfig } from './configuration';
 import { ExtensionKey } from './constants';
 
 const OutputChannelName = 'FindRelated';
@@ -18,11 +18,11 @@ let level: OutputLevel = OutputLevel.Silent;
 let output: OutputChannel;
 
 function onConfigurationChanged() {
-    const cfg = workspace.getConfiguration(ExtensionKey).get<IAdvancedConfig>('advanced');
+    const cfg = workspace.getConfiguration().get<IConfig>(ExtensionKey);
 
-    if (cfg.debug !== debug || cfg.output.level !== level) {
+    if (cfg.debug !== debug || cfg.outputLevel !== level) {
         debug = cfg.debug;
-        level = cfg.output.level;
+        level = cfg.outputLevel;
 
         if (level === OutputLevel.Silent) {
             output && output.dispose();
