@@ -1,6 +1,4 @@
-[![](https://vsmarketplacebadge.apphb.com/version/eamodio.find-related.svg)](https://marketplace.visualstudio.com/items?itemName=eamodio.find-related)
-[![](https://vsmarketplacebadge.apphb.com/installs/eamodio.find-related.svg)](https://marketplace.visualstudio.com/items?itemName=eamodio.find-related)
-[![](https://vsmarketplacebadge.apphb.com/rating/eamodio.find-related.svg)](https://marketplace.visualstudio.com/items?itemName=eamodio.find-related)
+[![](https://vsmarketplacebadge.apphb.com/version/eamodio.find-related.svg)](https://marketplace.visualstudio.com/items?itemName=eamodio.find-related) [![](https://vsmarketplacebadge.apphb.com/installs/eamodio.find-related.svg)](https://marketplace.visualstudio.com/items?itemName=eamodio.find-related) [![](https://vsmarketplacebadge.apphb.com/rating/eamodio.find-related.svg)](https://marketplace.visualstudio.com/items?itemName=eamodio.find-related)
 # Find Related Files
 
 Finds files related to the current file based on user-defined configuration rules.
