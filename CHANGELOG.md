@@ -1,5 +1,8 @@
 ## Release Notes
 
+## 0.4.2
+- Fixes marketplace badge layout
+
 ## 0.4.1
 - Renames `findrelated.advanced.debug` setting to `findrelated.debug`
 - Renames `findrelated.output.level` setting to `findrelated.outputLevel`
