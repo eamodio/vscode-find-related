@@ -1,5 +1,9 @@
 ## Release Notes
 
+## 0.5.0
+- Adds preview of editors when selecting (highlighting) an item in the quick pick menu
+- Changes to use the supported vscode api for opening editors
+
 ## 0.4.2
 - Fixes marketplace badge layout
 
