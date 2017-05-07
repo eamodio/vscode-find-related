@@ -7,7 +7,7 @@ const tokenReplacer = /(\$([0-9]))/g;
 
 export interface IRule {
     match(fileName: string): boolean;
-    provideRelated(fileName: string, document: TextDocument, rootPath: string): IterableIterator<Promise<Uri[]>>;
+    provideRelated(fileName: string, document: TextDocument, rootPath: string | undefined): IterableIterator<Promise<Uri[]>>;
 }
 
 export interface IRuleDefinition {
@@ -21,7 +21,7 @@ export class Rule implements IRule, IRuleDefinition {
     locators: string[];
     matcher: RegExp;
 
-    private _match: RegExpExecArray;
+    private _match: RegExpExecArray | null;
 
     constructor(rule: IRuleDefinition, private rulesetName: string) {
         Object.assign(this, rule);
@@ -49,6 +49,8 @@ export class Rule implements IRule, IRuleDefinition {
 
     *provideRelated(fileName: string, document: TextDocument, rootPath: string): IterableIterator<Promise<Uri[]>> {
         for (const locator of this.locators) {
+            if (this._match == null) continue;
+
             const globPattern = Rule.replaceTokens(locator, this._match);
             Logger.log(`Rule(${this.rulesetName}).provideRelated(${fileName}, ${rootPath})`, `globPattern=${globPattern}`);
             //yield Rule.globAsync(globPattern, { cwd: rootPath, nocase: true });

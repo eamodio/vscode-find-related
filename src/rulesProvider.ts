@@ -53,7 +53,7 @@ export class RulesProvider extends Disposable {
         return this.rules.filter(_ => _.match(fileName));
     }
 
-    *resolveRules(rules: IRule[], fileName: string, document: TextDocument, rootPath: string): Iterable<Promise<Uri[]>> {
+    *resolveRules(rules: IRule[], fileName: string, document: TextDocument, rootPath: string | undefined): Iterable<Promise<Uri[]>> {
         for (const rule of rules) {
             yield *rule.provideRelated(fileName, document, rootPath);
         }
@@ -82,20 +82,23 @@ export class RulesProvider extends Disposable {
     }
 
     private compileRules(): void {
-        const cfg = workspace.getConfiguration('').get<IConfig>(ExtensionKey);
-        const applied = Arrays.union(cfg.applyRulesets, cfg.applyWorkspaceRulesets);
-
         const rules: IRule[] = [];
-        if (applied.length) {
-            const userDefinedRulesets = cfg.rulesets || [];
-            const workspaceDefinedRulesets = cfg.workspaceRulesets || [];
-            for (const name of applied) {
-                const ruleset = workspaceDefinedRulesets.find(_ => _.name === name) ||
-                    userDefinedRulesets.find(_ => _.name === name) ||
-                    this.rulesets.find(_ => _.name === name);
-                if (!ruleset) continue;
 
-                rules.push(...ruleset.rules.map(_ => new Rule(_, ruleset.name)));
+        const cfg = workspace.getConfiguration('').get<IConfig>(ExtensionKey);
+        if (cfg !== undefined) {
+            const applied = Arrays.union(cfg.applyRulesets, cfg.applyWorkspaceRulesets);
+
+            if (applied.length) {
+                const userDefinedRulesets = cfg.rulesets || [];
+                const workspaceDefinedRulesets = cfg.workspaceRulesets || [];
+                for (const name of applied) {
+                    const ruleset = workspaceDefinedRulesets.find(_ => _.name === name) ||
+                        userDefinedRulesets.find(_ => _.name === name) ||
+                        this.rulesets.find(_ => _.name === name);
+                    if (!ruleset) continue;
+
+                    rules.push(...ruleset.rules.map(_ => new Rule(_, ruleset.name)));
+                }
             }
         }
 

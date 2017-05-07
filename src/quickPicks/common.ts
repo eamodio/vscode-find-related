@@ -1,7 +1,7 @@
 'use strict';
-import { CancellationTokenSource, commands, Disposable, QuickPickItem, QuickPickOptions, Uri, window, workspace } from 'vscode';
-import { Commands, Keyboard, KeyboardScope, KeyMapping, openEditor } from '../commands';
-import * as path from 'path';
+import { CancellationTokenSource, commands, Disposable, QuickPickItem, QuickPickOptions, TextDocumentShowOptions, TextEditor, Uri, window } from 'vscode';
+import { Commands, Keyboard, Keys, KeyboardScope, KeyMapping, openEditor } from '../commands';
+// import { Logger } from '../logger';
 
 export function showQuickPickProgress(message: string, mapping?: KeyMapping, delay: boolean = false): CancellationTokenSource {
     const cancellation = new CancellationTokenSource();
@@ -24,7 +24,7 @@ export function showQuickPickProgress(message: string, mapping?: KeyMapping, del
 async function _showQuickPickProgress(message: string, cancellation: CancellationTokenSource, mapping?: KeyMapping) {
         // Logger.log(`showQuickPickProgress`, `show`, message);
 
-        const scope: KeyboardScope = mapping && await Keyboard.instance.beginScope(mapping);
+        const scope: KeyboardScope | undefined = mapping && await Keyboard.instance.beginScope(mapping);
 
         try {
             await window.showQuickPick(_getInfiniteCancellablePromise(cancellation), {
@@ -43,7 +43,7 @@ async function _showQuickPickProgress(message: string, cancellation: Cancellatio
 }
 
 function _getInfiniteCancellablePromise(cancellation: CancellationTokenSource) {
-    return new Promise((resolve, reject) => {
+    return new Promise<QuickPickItem[]>((resolve, reject) => {
         const disposable = cancellation.token.onCancellationRequested(() => {
             disposable.dispose();
             resolve([]);
@@ -51,35 +51,33 @@ function _getInfiniteCancellablePromise(cancellation: CancellationTokenSource) {
     });
 }
 
+export interface QuickPickItem extends QuickPickItem {
+    onDidSelect?(): void;
+    onDidPressKey?(key: Keys): Promise<{} | undefined>;
+}
+
 export class CommandQuickPickItem implements QuickPickItem {
 
     label: string;
     description: string;
-    detail: string;
+    detail?: string | undefined;
+    protected command: Commands | undefined;
+    protected args: any[] | undefined;
 
-    constructor(item: QuickPickItem, protected command: Commands, protected args?: any[]) {
+    constructor(item: QuickPickItem, args?: [Commands, any[]]);
+    constructor(item: QuickPickItem, command?: Commands, args?: any[]);
+    constructor(item: QuickPickItem, commandOrArgs?: Commands | [Commands, any[]], args?: any[]) {
+        if (commandOrArgs === undefined) {
+            this.command = undefined;
+            this.args = args;
+        }
+        else if (typeof commandOrArgs === 'string') {
+            this.command = commandOrArgs;
+            this.args = args;
+        }
+        else {
+            this.command = commandOrArgs[0];
+            this.args = commandOrArgs.slice(1);
+        }
         Object.assign(this, item);
     }
-
-    execute(): Thenable<{}> {
-        return commands.executeCommand(this.command, ...(this.args || []));
-    }
-}
-
-export class OpenFileCommandQuickPickItem extends CommandQuickPickItem {
-
-    label: string;
-    description: string;
-    detail: string;
-
-    constructor(private uri: Uri) {
-        super({
-            label: `$(file-symlink-file) ${path.basename(uri.fsPath)}`,
-            description: workspace.asRelativePath(path.dirname(uri.fsPath))
-        }, undefined, undefined);
-    }
-
-    async execute(pinned: boolean = true): Promise<{}> {
-        return await openEditor(this.uri, pinned);
-    }
-}

@@ -31,7 +31,7 @@ export class ShowRelatedCommand extends EditorCommand {
             const activeRules = this.rulesProvider.provideRules(fileName);
             if (!activeRules.length) return undefined;
 
-            const cfg = workspace.getConfiguration('').get<IConfig>(ExtensionKey);
+            const cfg = workspace.getConfiguration().get<IConfig>(ExtensionKey) || { autoOpen: false, openPreview: true };
 
             if (progressCancellation.token.isCancellationRequested) return undefined;
 
@@ -56,7 +56,7 @@ export class ShowRelatedCommand extends EditorCommand {
         }
     }
 
-    private async getRelatedFiles(rules: IRule[], fileName: string, document: TextDocument): Promise<Uri[]> {
+    private async getRelatedFiles(rules: IRule[], fileName: string, document: TextDocument): Promise<Uri[] | undefined> {
         const files = await Promise.all<Uri[]>(this.rulesProvider.resolveRules(rules, fileName, document, workspace.rootPath));
         if (!files.length) return undefined;
 
