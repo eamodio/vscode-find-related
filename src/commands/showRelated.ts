@@ -40,12 +40,12 @@ export class ShowRelatedCommand extends EditorCommand {
 
             if (progressCancellation.token.isCancellationRequested) return undefined;
 
-            if (uris.length === 1 && cfg.autoOpen) return await openEditor(uris[0], cfg.openPreview);
+            if (uris.length === 1 && cfg.autoOpen) return await openEditor(uris[0], { preview: cfg.openPreview });
 
             const pick = await RelatedQuickPick.show(uris, placeHolder, progressCancellation);
             if (!pick) return undefined;
 
-            return await pick.execute(cfg.openPreview);
+            return await pick.execute({ preview: cfg.openPreview });
         }
         catch (ex) {
             Logger.error(ex, 'ShowRelatedCommand');

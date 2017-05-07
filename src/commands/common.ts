@@ -1,5 +1,5 @@
 'use strict';
-import { commands, Disposable, TextEditor, TextEditorEdit, Uri, window, workspace } from 'vscode';
+import { commands, Disposable, TextDocumentShowOptions, TextEditor, TextEditorEdit, Uri, window, workspace } from 'vscode';
 import { BuiltInCommands } from '../constants';
 import { Logger } from '../logger';
 
@@ -33,12 +33,16 @@ export abstract class EditorCommand extends Disposable {
     abstract execute(editor: TextEditor, edit: TextEditorEdit, ...args: any[]): any;
 }
 
-export async function openEditor(uri: Uri, pinned: boolean = false) {
+export async function openEditor(uri: Uri, options?: TextDocumentShowOptions): Promise<TextEditor | undefined> {
     try {
-        if (!pinned) return await commands.executeCommand(BuiltInCommands.Open, uri);
+        const defaults: TextDocumentShowOptions = {
+            preserveFocus: false,
+            preview: true,
+            viewColumn: (window.activeTextEditor && window.activeTextEditor.viewColumn) || 1
+        };
 
         const document = await workspace.openTextDocument(uri);
-        return window.showTextDocument(document, (window.activeTextEditor && window.activeTextEditor.viewColumn) || 1, true);
+        return window.showTextDocument(document, { ...defaults, ...(options || {}) });
     }
     catch (ex) {
         Logger.error(ex, 'openEditor');

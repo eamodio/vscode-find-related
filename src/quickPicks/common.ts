@@ -81,3 +81,60 @@ export class CommandQuickPickItem implements QuickPickItem {
         }
         Object.assign(this, item);
     }
+
+    execute(): Promise<{} | undefined> {
+        if (this.command === undefined) return Promise.resolve(undefined);
+
+        return commands.executeCommand(this.command, ...(this.args || [])) as Promise<{} | undefined>;
+    }
+
+    onDidPressKey(key: Keys): Promise<{} | undefined> {
+        return this.execute();
+    }
+}
+
+export class OpenFileCommandQuickPickItem extends CommandQuickPickItem {
+
+    constructor(public uri: Uri, item: QuickPickItem) {
+        super(item, undefined, undefined);
+    }
+
+    async execute(options?: TextDocumentShowOptions): Promise<TextEditor | undefined> {
+        return openEditor(this.uri, options);
+    }
+
+    onDidSelect(): Promise<{} | undefined> {
+        return this.execute({
+            preserveFocus: true,
+            preview: true
+        });
+    }
+
+    onDidPressKey(key: Keys): Promise<{} | undefined> {
+        return this.execute({
+            preserveFocus: true,
+            preview: false
+        });
+    }
+}
+
+export class OpenFilesCommandQuickPickItem extends CommandQuickPickItem {
+
+    constructor(public uris: Uri[], item: QuickPickItem) {
+        super(item, undefined, undefined);
+    }
+
+    async execute(options: TextDocumentShowOptions = { preserveFocus: false, preview: false }): Promise<{} | undefined> {
+        for (const uri of this.uris) {
+            await openEditor(uri, options);
+        }
+        return undefined;
+    }
+
+    async onDidPressKey(key: Keys): Promise<{} | undefined> {
+        return this.execute({
+            preserveFocus: true,
+            preview: false
+        });
+    }
+}
