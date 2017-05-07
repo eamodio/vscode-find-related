@@ -2,6 +2,7 @@
 
 export const ExtensionId = 'find-related';
 export const ExtensionKey = 'findrelated';
+export const ExtensionOutputChannelName = 'FindRelated';
 export const QualifiedExtensionId = `eamodio.${ExtensionId}`;
 
 export type BuiltInCommands = 'vscode.open' | 'setContext';
