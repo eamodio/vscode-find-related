@@ -2,6 +2,8 @@
 import { OutputLevel } from './logger';
 import { IRuleset } from './rulesProvider';
 
+export { ExtensionKey } from './constants';
+
 export interface IConfig {
     debug: boolean;
     outputLevel: OutputLevel;

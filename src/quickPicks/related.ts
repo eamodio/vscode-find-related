@@ -2,8 +2,7 @@
 import { CancellationTokenSource, QuickPickOptions, TextDocumentShowOptions, TextEditor, Uri, window, workspace } from 'vscode';
 import { Keyboard } from '../commands';
 import { OpenFileCommandQuickPickItem, QuickPickItem, showQuickPickProgress } from './common';
-import { IConfig } from '../configuration';
-import { ExtensionKey } from '../constants';
+import { ExtensionKey, IConfig } from '../configuration';
 import * as path from 'path';
 
 export class RelatedFileQuickPickItem extends OpenFileCommandQuickPickItem {

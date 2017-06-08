@@ -1,8 +1,7 @@
 'use strict';
 import { Arrays } from './system';
 import { Disposable, ExtensionContext, TextDocument, Uri, workspace } from 'vscode';
-import { IConfig } from './configuration';
-import { ExtensionKey } from './constants';
+import { ExtensionKey, IConfig } from './configuration';
 import { Logger } from './logger';
 import { IRule, IRuleDefinition, Rule } from './rule';
 

@@ -2,8 +2,7 @@
 import { Arrays } from '../system';
 import { ExtensionContext, TextDocument, TextEditor, TextEditorEdit, Uri, window, workspace } from 'vscode';
 import { Commands, EditorCommand, openEditor } from './common';
-import { IConfig } from '../configuration';
-import { ExtensionKey } from '../constants';
+import { ExtensionKey, IConfig } from '../configuration';
 import { Logger } from '../logger';
 import { RelatedQuickPick } from '../quickPicks';
 import { IRule, RulesProvider } from '../rulesProvider';

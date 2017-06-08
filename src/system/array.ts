@@ -6,7 +6,7 @@ export namespace Arrays {
         return array.reduce((acc: T[], val: (T | T[])) => acc.concat(Array.isArray(val) ? flatten(val) : val), []) as T[];
     }
 
-    export function union<T>(...arrays: Array<T[]>): T[] {
+    export function union<T>(...arrays: (T[])[]): T[] {
         return _union(...arrays);
     }
 }
