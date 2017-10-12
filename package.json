@@ -26,7 +26,7 @@
         "color": "#56098c",
         "theme": "dark"
     },
-    "icon": "images/icon.svg",
+    "icon": "images/icon.png",
     "preview": false,
     "homepage": "https://github.com/eamodio/vscode-find-related/blob/master/README.md",
     "bugs": {

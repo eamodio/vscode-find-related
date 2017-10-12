@@ -1,4 +1,4 @@
-!images/icon.svg
+!images/icon.png
 images/**
 .vscode/**
 .vscode-test/**
