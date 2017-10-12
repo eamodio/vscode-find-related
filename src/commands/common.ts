@@ -1,20 +1,9 @@
 'use strict';
 import { commands, Disposable, TextDocumentShowOptions, TextEditor, TextEditorEdit, Uri, window, workspace } from 'vscode';
-import { BuiltInCommands } from '../constants';
 import { Logger } from '../logger';
 
-export type Commands = 'findrelated.show';
-export const Commands = {
-    Show: 'findrelated.show' as Commands
-};
-
-export type CommandContext = 'findrelated:key';
-export const CommandContext = {
-    Key: 'findrelated:key' as CommandContext
-};
-
-export function setCommandContext(key: CommandContext | string, value: any) {
-    return commands.executeCommand(BuiltInCommands.SetContext, key, value);
+export enum Commands {
+    Show = 'findrelated.show'
 }
 
 export abstract class EditorCommand extends Disposable {

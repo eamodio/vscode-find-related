@@ -1,6 +1,8 @@
 'use strict';
 import { CancellationTokenSource, commands, Disposable, QuickPickItem, QuickPickOptions, TextDocumentShowOptions, TextEditor, Uri, window } from 'vscode';
-import { Commands, Keyboard, KeyboardScope, KeyMapping, Keys, openEditor } from '../commands';
+import { Commands, openEditor } from '../commands';
+import { Keyboard, KeyboardScope, KeyMapping, Keys } from '../keyboard';
+
 // import { Logger } from '../logger';
 
 export function showQuickPickProgress(message: string, mapping?: KeyMapping, delay: boolean = false): CancellationTokenSource {

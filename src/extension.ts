@@ -1,8 +1,8 @@
 'use strict';
 import { ExtensionContext } from 'vscode';
-import { Keyboard } from './commands';
 import { ShowRelatedCommand } from './commands';
 import { FindRelatedApi } from './extensionApi';
+import { Keyboard } from './keyboard';
 import { Logger } from './logger';
 import { RulesProvider } from './rulesProvider';
 

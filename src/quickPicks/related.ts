@@ -1,8 +1,8 @@
 'use strict';
 import { CancellationTokenSource, QuickPickOptions, TextDocumentShowOptions, TextEditor, Uri, window, workspace } from 'vscode';
-import { Keyboard } from '../commands';
 import { OpenFileCommandQuickPickItem, QuickPickItem, showQuickPickProgress } from './common';
 import { ExtensionKey, IConfig } from '../configuration';
+import { Keyboard } from '../keyboard';
 import * as path from 'path';
 
 export class RelatedFileQuickPickItem extends OpenFileCommandQuickPickItem {
