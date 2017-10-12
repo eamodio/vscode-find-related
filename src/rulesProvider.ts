@@ -1,6 +1,6 @@
 'use strict';
-import { Arrays } from './system';
-import { Disposable, ExtensionContext, TextDocument, Uri, workspace } from 'vscode';
+import { Arrays, Objects } from './system';
+import { CancellationToken, Disposable, ExtensionContext, TextDocument, Uri, workspace } from 'vscode';
 import { ExtensionKey, IConfig } from './configuration';
 import { Logger } from './logger';
 import { IRule, IRuleDefinition, Rule } from './rule';
@@ -24,12 +24,13 @@ interface IRegisteredRuleset {
 
 export class RulesProvider extends Disposable {
 
+    private static _excludes: string | null | undefined;
+
     rules: IRule[];
     rulesets: IRuleset[];
 
-    private disposable: Disposable;
-
-    private registeredRulesets: IRegisteredRuleset[];
+    private _disposable: Disposable;
+    private _registeredRulesets: IRegisteredRuleset[];
 
     constructor(context: ExtensionContext) {
         super(() => this.dispose());
@@ -37,15 +38,16 @@ export class RulesProvider extends Disposable {
         this.rulesets = require(context.asAbsolutePath('./rulesets.json'));
 
         this.onConfigurationChanged();
-        this.disposable = workspace.onDidChangeConfiguration(this.onConfigurationChanged, this);
+        this._disposable = workspace.onDidChangeConfiguration(this.onConfigurationChanged, this);
     }
 
     dispose() {
-        this.disposable && this.disposable.dispose();
+        this._disposable && this._disposable.dispose();
     }
 
     private onConfigurationChanged(): void {
         this.compileRules();
+        RulesProvider._excludes = undefined;
     }
 
     provideRules(fileName: string): IRule[] {
@@ -59,22 +61,22 @@ export class RulesProvider extends Disposable {
     }
 
     registerRuleset(name: string, rules: (IDynamicRule | IRuleDefinition)[]): Disposable {
-        if (!this.registeredRulesets) {
-            this.registeredRulesets = [];
+        if (!this._registeredRulesets) {
+            this._registeredRulesets = [];
         }
 
         const ruleset = {
             name: name,
             rules: rules
         } as IRegisteredRuleset;
-        this.registeredRulesets.push(ruleset);
+        this._registeredRulesets.push(ruleset);
 
         this.compileRules();
 
         return {
             dispose: () => {
-                const index = this.registeredRulesets.indexOf(ruleset);
-                this.registeredRulesets.splice(index, 1);
+                const index = this._registeredRulesets.indexOf(ruleset);
+                this._registeredRulesets.splice(index, 1);
                 this.compileRules();
             }
         } as Disposable;
@@ -101,8 +103,8 @@ export class RulesProvider extends Disposable {
             }
         }
 
-        if (this.registeredRulesets && this.registeredRulesets.length) {
-            for (const ruleset of this.registeredRulesets) {
+        if (this._registeredRulesets && this._registeredRulesets.length) {
+            for (const ruleset of this._registeredRulesets) {
                 rules.push(...ruleset.rules.map(rule => {
                     if (typeof (rule as IDynamicRule).match === 'function' &&
                         typeof (rule as IDynamicRule).provideRelated === 'function') {
@@ -122,5 +124,49 @@ export class RulesProvider extends Disposable {
         }
 
         this.rules = rules;
+    }
+
+    static findFiles(pattern: string, maxResults?: number, token?: CancellationToken): Promise<Uri[]> {
+        return workspace.findFiles(pattern, RulesProvider._excludes || this.getFindFilesExcludes(), maxResults, token) as Promise<Uri[]>;
+    }
+
+    private static getFindFilesExcludes(): string| undefined {
+        if (RulesProvider._excludes === undefined) {
+            const fileExclude = workspace.getConfiguration('files').get<{ [key: string]: boolean } | undefined>('exclude', undefined);
+            const searchExclude = workspace.getConfiguration('search').get<{ [key: string]: boolean } | undefined>('exclude', undefined);
+
+            if (fileExclude !== undefined || searchExclude !== undefined) {
+                const excludes: { [key: string]: boolean } = Object.create(null);
+                if (fileExclude !== undefined) {
+                    for (const [key, value] of Objects.entries(fileExclude)) {
+                        if (!value) continue;
+
+                        excludes[key] = true;
+                    }
+                }
+
+                if (searchExclude !== undefined) {
+                    for (const [key, value] of Objects.entries(searchExclude)) {
+                        if (!value) continue;
+
+                        excludes[key] = true;
+                    }
+                }
+
+                const patterns = Object.keys(excludes);
+                RulesProvider._excludes = (patterns.length > 0) ?
+                    `{${patterns.join(',')}}`
+                    : null;
+            }
+            else {
+                RulesProvider._excludes = null;
+            }
+
+            Logger.log(`excludes=${RulesProvider._excludes}`);
+        }
+
+        return RulesProvider._excludes !== null
+            ? RulesProvider._excludes
+            : undefined;
     }
 }

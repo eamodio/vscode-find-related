@@ -1,6 +1,7 @@
 'use strict';
-import { CancellationToken, TextDocument, Uri, workspace } from 'vscode';
+import { TextDocument, Uri } from 'vscode';
 import { Logger } from './logger';
+import { RulesProvider } from './rulesProvider';
 // import * as glob from 'glob';
 
 const tokenReplacer = /(\$([0-9]))/g;
@@ -54,16 +55,12 @@ export class Rule implements IRule, IRuleDefinition {
             const globPattern = Rule.replaceTokens(locator, this._match);
             Logger.log(`Rule(${this.rulesetName}).provideRelated(${fileName}, ${rootPath})`, `globPattern=${globPattern}`);
             // yield Rule.globAsync(globPattern, { cwd: rootPath, nocase: true });
-            yield Rule.findFilesAsync(globPattern);
+            yield RulesProvider.findFiles(globPattern);
         }
     }
 
     private static replaceTokens(pattern: string, ruleMatch: RegExpExecArray): string {
         return pattern.replace(tokenReplacer, (match: string, p1: string, p2: string) => ruleMatch[+p2]);
-    }
-
-    private static async findFilesAsync(pattern: string, maxResults?: number, token?: CancellationToken): Promise<Uri[]> {
-        return await workspace.findFiles(pattern, undefined, maxResults, token);
     }
 
     // private static async globAsync(pattern: string, options?: glob.IOptions): Promise<Uri[]> {
