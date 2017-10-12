@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## [Unreleased]
 
+## [0.6.0] - 2017-10-12
+### Added
+- Adds exclude patterns (using `files.exclude` & `search.exclude` settings) to the file search to improve performance -- Attempts to address [#2](https://github.com/eamodio/vscode-find-related/issues/2)
+- Adds slack chat badge
+
 ## [0.5.0] - 2017-05-07
 ### Added
 - Adds preview of editors when selecting (highlighting) an item in the quick pick menu
