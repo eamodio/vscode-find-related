@@ -12,6 +12,13 @@
     "license": "SEE LICENSE IN LICENSE",
     "displayName": "Find Related Files",
     "description": "Finds files related to the current file based on user-defined configuration rules",
+    "badges": [
+        {
+            "url": "https://img.shields.io/badge/chat-on%20slack-brightgreen.svg",
+            "href": "https://join.slack.com/t/vscode-dev-community/shared_invite/enQtMjIxOTgxNDE3NzM0LWU5M2ZiZDU1YjBlMzdlZjA2YjBjYzRhYTM5NTgzMTAxMjdiNWU0ZmQzYWI3MWU5N2Q1YjBiYmQ4MzY0NDE1MzY",
+            "description": "Chat at https://vscode-dev-community.slack.com/"
+        }
+    ],
     "categories": [
         "Other"
     ],

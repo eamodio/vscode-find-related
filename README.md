@@ -1,4 +1,8 @@
-[![](https://vsmarketplacebadge.apphb.com/version/eamodio.find-related.svg)](https://marketplace.visualstudio.com/items?itemName=eamodio.find-related) [![](https://vsmarketplacebadge.apphb.com/installs/eamodio.find-related.svg)](https://marketplace.visualstudio.com/items?itemName=eamodio.find-related) [![](https://vsmarketplacebadge.apphb.com/rating/eamodio.find-related.svg)](https://marketplace.visualstudio.com/items?itemName=eamodio.find-related)
+[![](https://vsmarketplacebadge.apphb.com/version/eamodio.find-related.svg)](https://marketplace.visualstudio.com/items?itemName=eamodio.find-related)
+[![](https://vsmarketplacebadge.apphb.com/installs/eamodio.find-related.svg)](https://marketplace.visualstudio.com/items?itemName=eamodio.find-related)
+[![](https://vsmarketplacebadge.apphb.com/rating/eamodio.find-related.svg)](https://marketplace.visualstudio.com/items?itemName=eamodio.find-related)
+[![Chat at https://vscode-dev-community.slack.com/](https://raw.githubusercontent.com/eamodio/vscode-gitlens/master/images/chat-badge.png)](https://join.slack.com/t/vscode-dev-community/shared_invite/enQtMjIxOTgxNDE3NzM0LWU5M2ZiZDU1YjBlMzdlZjA2YjBjYzRhYTM5NTgzMTAxMjdiNWU0ZmQzYWI3MWU5N2Q1YjBiYmQ4MzY0NDE1MzY)
+
 # Find Related Files
 
 Finds files related to the current file based on user-defined configuration rules.
