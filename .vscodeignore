@@ -6,6 +6,9 @@ out/test/**
 test/**
 src/**
 **/*.map
+.github/**
 .gitignore
+CODE_OF_CONDUCT.md
+package-lock.json
 tsconfig.json
 tslint.json

@@ -1,7 +1,7 @@
 'use strict';
-import { Arrays, Objects } from './system';
-import { CancellationToken, Disposable, ExtensionContext, TextDocument, Uri, workspace } from 'vscode';
-import { ExtensionKey, IConfig } from './configuration';
+import { Arrays } from './system';
+import { CancellationToken, ConfigurationChangeEvent, Disposable, ExtensionContext, TextDocument, Uri, workspace } from 'vscode';
+import { configuration, IConfig } from './configuration';
 import { Logger } from './logger';
 import { IRule, IRuleDefinition, Rule } from './rule';
 
@@ -24,34 +24,49 @@ interface IRegisteredRuleset {
 
 export class RulesProvider extends Disposable {
 
-    private static _excludes: string | null | undefined;
+    private static _excludes: null | undefined;
 
-    rules: IRule[];
+    rules!: IRule[];
     rulesets: IRuleset[];
 
-    private _disposable: Disposable;
-    private _registeredRulesets: IRegisteredRuleset[];
+    private readonly _disposable: Disposable;
+    private _registeredRulesets: IRegisteredRuleset[] | undefined;
 
     constructor(context: ExtensionContext) {
         super(() => this.dispose());
 
         this.rulesets = require(context.asAbsolutePath('./rulesets.json'));
 
-        this.onConfigurationChanged();
-        this._disposable = workspace.onDidChangeConfiguration(this.onConfigurationChanged, this);
+        this._disposable = Disposable.from(
+            configuration.onDidChange(this.onConfigurationChanged, this)
+        );
+        this.onConfigurationChanged(configuration.initializingChangeEvent);
     }
 
     dispose() {
         this._disposable && this._disposable.dispose();
     }
 
-    private onConfigurationChanged(): void {
-        this.compileRules();
-        RulesProvider._excludes = undefined;
+    private onConfigurationChanged(e: ConfigurationChangeEvent): void {
+        const initializing = configuration.initializing(e);
+
+        if (initializing ||
+            configuration.changed(e, configuration.name('applyRulesets').value) ||
+            configuration.changed(e, configuration.name('applyWorkspaceRulesets').value) ||
+            configuration.changed(e, configuration.name('rulesets').value) ||
+            configuration.changed(e, configuration.name('workspaceRulesets').value)) {
+            this.compileRules();
+        }
+
+        if (initializing || configuration.changed(e, configuration.name('ignoreExcludes').value)) {
+            RulesProvider._excludes = configuration.get<boolean>(configuration.name('ignoreExcludes').value)
+                ? null
+                : undefined;
+        }
     }
 
     provideRules(fileName: string): IRule[] {
-        return this.rules.filter(_ => _.match(fileName));
+        return this.rules.filter(r => r.match(fileName));
     }
 
     *resolveRules(rules: IRule[], fileName: string, document: TextDocument, rootPath: string | undefined): Iterable<Promise<Uri[]>> {
@@ -61,7 +76,7 @@ export class RulesProvider extends Disposable {
     }
 
     registerRuleset(name: string, rules: (IDynamicRule | IRuleDefinition)[]): Disposable {
-        if (!this._registeredRulesets) {
+        if (this._registeredRulesets === undefined) {
             this._registeredRulesets = [];
         }
 
@@ -75,17 +90,19 @@ export class RulesProvider extends Disposable {
 
         return {
             dispose: () => {
-                const index = this._registeredRulesets.indexOf(ruleset);
-                this._registeredRulesets.splice(index, 1);
+                if (this._registeredRulesets !== undefined) {
+                    const index = this._registeredRulesets.indexOf(ruleset);
+                    this._registeredRulesets.splice(index, 1);
+                }
                 this.compileRules();
             }
-        } as Disposable;
+        };
     }
 
     private compileRules(): void {
         const rules: IRule[] = [];
 
-        const cfg = workspace.getConfiguration('').get<IConfig>(ExtensionKey);
+        const cfg = configuration.get<IConfig>();
         if (cfg !== undefined) {
             const applied = Arrays.union(cfg.applyRulesets, cfg.applyWorkspaceRulesets);
 
@@ -98,7 +115,7 @@ export class RulesProvider extends Disposable {
                         this.rulesets.find(_ => _.name === name);
                     if (!ruleset) continue;
 
-                    rules.push(...ruleset.rules.map(_ => new Rule(_, ruleset.name)));
+                    rules.push(...ruleset.rules.map(r => new Rule(r, ruleset.name)));
                 }
             }
         }
@@ -106,15 +123,14 @@ export class RulesProvider extends Disposable {
         if (this._registeredRulesets && this._registeredRulesets.length) {
             for (const ruleset of this._registeredRulesets) {
                 rules.push(...ruleset.rules.map(rule => {
-                    if (typeof (rule as IDynamicRule).match === 'function' &&
-                        typeof (rule as IDynamicRule).provideRelated === 'function') {
+                    if (Rule.isDynamic(rule)) {
                         return {
-                            match: (rule as IDynamicRule).match,
-                            provideRelated: (fileName: string, document: TextDocument, rootPath: string) => [(rule as IDynamicRule).provideRelated(fileName, document, rootPath)] as any
+                            match: rule.match,
+                            provideRelated: (fileName: string, document: TextDocument, rootPath: string) => [rule.provideRelated(fileName, document, rootPath)]
                         } as IRule;
                     }
 
-                    return new Rule(rule as IRuleDefinition, ruleset.name);
+                    return new Rule(rule, ruleset.name);
                 }));
             }
         }
@@ -126,47 +142,49 @@ export class RulesProvider extends Disposable {
         this.rules = rules;
     }
 
-    static findFiles(pattern: string, maxResults?: number, token?: CancellationToken): Promise<Uri[]> {
-        return workspace.findFiles(pattern, RulesProvider._excludes || this.getFindFilesExcludes(), maxResults, token) as Promise<Uri[]>;
+    static findFiles(pattern: string, maxResults ?: number, token ?: CancellationToken): Promise < Uri[] > {
+        Logger.log(`RulesProvider.findFiles(${pattern}, ${maxResults})`);
+
+        return workspace.findFiles(pattern, this._excludes, maxResults, token) as Promise<Uri[]>;
     }
 
-    private static getFindFilesExcludes(): string| undefined {
-        if (RulesProvider._excludes === undefined) {
-            const fileExclude = workspace.getConfiguration('files').get<{ [key: string]: boolean } | undefined>('exclude', undefined);
-            const searchExclude = workspace.getConfiguration('search').get<{ [key: string]: boolean } | undefined>('exclude', undefined);
+    // private static getFindFilesExcludes(): string| undefined {
+    //     if (RulesProvider._excludes === undefined) {
+    //         const fileExclude = workspace.getConfiguration('files').get<{ [key: string]: boolean } | undefined>('exclude', undefined);
+    //         const searchExclude = workspace.getConfiguration('search').get<{ [key: string]: boolean } | undefined>('exclude', undefined);
 
-            if (fileExclude !== undefined || searchExclude !== undefined) {
-                const excludes: { [key: string]: boolean } = Object.create(null);
-                if (fileExclude !== undefined) {
-                    for (const [key, value] of Objects.entries(fileExclude)) {
-                        if (!value) continue;
+    //         if (fileExclude !== undefined || searchExclude !== undefined) {
+    //             const excludes: { [key: string]: boolean } = Object.create(null);
+    //             if (fileExclude !== undefined) {
+    //                 for (const [key, value] of Objects.entries(fileExclude)) {
+    //                     if (!value) continue;
 
-                        excludes[key] = true;
-                    }
-                }
+    //                     excludes[key] = true;
+    //                 }
+    //             }
 
-                if (searchExclude !== undefined) {
-                    for (const [key, value] of Objects.entries(searchExclude)) {
-                        if (!value) continue;
+    //             if (searchExclude !== undefined) {
+    //                 for (const [key, value] of Objects.entries(searchExclude)) {
+    //                     if (!value) continue;
 
-                        excludes[key] = true;
-                    }
-                }
+    //                     excludes[key] = true;
+    //                 }
+    //             }
 
-                const patterns = Object.keys(excludes);
-                RulesProvider._excludes = (patterns.length > 0) ?
-                    `{${patterns.join(',')}}`
-                    : null;
-            }
-            else {
-                RulesProvider._excludes = null;
-            }
+    //             const patterns = Object.keys(excludes);
+    //             RulesProvider._excludes = (patterns.length > 0)
+    //                 ? `{${patterns.join(',')}}`
+    //                 : null;
+    //         }
+    //         else {
+    //             RulesProvider._excludes = null;
+    //         }
 
-            Logger.log(`excludes=${RulesProvider._excludes}`);
-        }
+    //         Logger.log(`excludes=${RulesProvider._excludes}`);
+    //     }
 
-        return RulesProvider._excludes !== null
-            ? RulesProvider._excludes
-            : undefined;
-    }
+    //     return RulesProvider._excludes !== null
+    //         ? RulesProvider._excludes
+    //         : undefined;
+    // }
 }

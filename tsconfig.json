@@ -1,5 +1,6 @@
 {
     "compilerOptions": {
+        "experimentalDecorators": true,
         "forceConsistentCasingInFileNames": true,
         "lib": [ "es2015", "es2016" ],
         "module": "commonjs",

@@ -17,14 +17,17 @@
     },
     "tasks": [
         {
-            "label": "compile",
+            "label": "build",
             "type": "npm",
-            "script": "compile",
-            "group": "build",
+            "script": "build",
             "problemMatcher": [
                 "$tsc",
                 "$tslint5"
-            ]
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         },
         {
             "label": "lint",
@@ -32,13 +35,28 @@
             "script": "lint",
             "problemMatcher": [
                 "$tslint5"
-            ]
+            ],
+            "group": "build"
         },
         {
+            "label": "rebuild",
+            "type": "npm",
+            "script": "rebuild",
+            "problemMatcher": [
+                "$tsc",
+                "$tslint5"
+            ],
+            "group": "build"
+        },
+        {
+            "label": "watch",
             "type": "npm",
             "script": "watch",
             "isBackground": true,
-            "problemMatcher": "$tsc-watch"
+            "problemMatcher": [
+                "$tsc-watch"
+            ],
+            "group": "build"
         }
     ]
 }

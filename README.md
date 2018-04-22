@@ -104,6 +104,8 @@ Please open new [Github issues](https://github.com/eamodio/vscode-find-related/i
 |`findrelated.applyRulesets`|Specifies the rulesets to use to find related files
 |`findrelated.applyWorkspaceRules`|Specifies the workspace-specific rulesets to use to find related files
 |`findrelated.autoOpen`|Specifies whether to automatically open the related file if there is only 1 result
+|`findrelated.autoPreview`|Specifies whether to automatically preview related files upon selection
+|`findrelated.ignoreExcludes`|Specifies whether to ignore file excludes when searching for related files
 |`findrelated.openPreview`|Specifies whether or not to open the related file in a preview tab
 
 ## Extension API

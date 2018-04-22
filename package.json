@@ -1,13 +1,13 @@
 {
     "name": "find-related",
-    "version": "0.6.0",
+    "version": "0.7.0",
     "author": {
         "name": "Eric Amodio",
         "email": "eamodio@gmail.com"
     },
     "publisher": "eamodio",
     "engines": {
-        "vscode": "^1.17.0"
+        "vscode": "^1.22.0"
     },
     "license": "SEE LICENSE IN LICENSE",
     "displayName": "Find Related Files",
@@ -16,7 +16,7 @@
         {
             "url": "https://img.shields.io/badge/chat-on%20slack-brightgreen.svg",
             "href": "https://join.slack.com/t/vscode-dev-community/shared_invite/enQtMjIxOTgxNDE3NzM0LWU5M2ZiZDU1YjBlMzdlZjA2YjBjYzRhYTM5NTgzMTAxMjdiNWU0ZmQzYWI3MWU5N2Q1YjBiYmQ4MzY0NDE1MzY",
-            "description": "Chat at https://vscode-dev-community.slack.com/"
+            "description": "Join us in the #find-related-files channel"
         }
     ],
     "categories": [
@@ -167,10 +167,20 @@
                     "default": false,
                     "description": "Specifies whether to automatically open the related file if there is only 1 result"
                 },
+                "findrelated.autoPreview": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Specifies whether to automatically preview related files upon selection"
+                },
+                "findrelated.ignoreExcludes": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Specifies whether to ignore file excludes when searching for related files"
+                },
                 "findrelated.openPreview": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Specifies whether or not to open the related file in a preview tab"
+                    "description": "Specifies whether to open the related file in a preview tab"
                 },
                 "findrelated.debug": {
                     "type": "boolean",
@@ -213,27 +223,26 @@
         "onCommand:findrelated.show"
     ],
     "scripts": {
-        "clean": "git clean -xdf",
-        "compile": "npm run lint && tsc -p ./",
+        "build": "npm run lint && tsc -p ./",
+        "clean": "git clean -Xdf",
+        "lint": "tslint --project tsconfig.json",
+        "pack": "vsce package",
+        "pub": "vsce publish",
+        "reset": "npm run clean && npm install --no-save",
         "watch": "tsc -watch -p ./",
-        "lint": "tslint --project tslint.json",
-        "pack": "npm run clean && vsce package",
         "postinstall": "node ./node_modules/vscode/bin/install",
-        "pub": "npm run clean && vsce publish",
-        "reset": "npm run clean && npm install",
-        "vscode:prepublish": "npm install --no-save && npm run compile",
-        "precommit": "npm run compile"
+        "prepush": "npm run build",
+        "vscode:prepublish": "npm run reset && npm run build"
     },
     "dependencies": {
         "lodash.union": "4.6.0"
     },
     "devDependencies": {
-        "@types/mocha": "2.2.43",
-        "@types/node": "8.0.34",
-        "husky": "^0.14.3",
-        "mocha": "4.0.1",
-        "tslint": "5.7.0",
-        "typescript": "2.5.3",
-        "vscode": "1.1.5"
+        "@types/lodash.union": "4.6.3",
+        "@types/node": "9.6.6",
+        "husky": "0.14.3",
+        "tslint": "5.9.1",
+        "typescript": "2.8.3",
+        "vscode": "1.1.14"
     }
 }

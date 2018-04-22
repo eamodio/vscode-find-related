@@ -1,7 +1,8 @@
 'use strict';
 import { CancellationTokenSource, commands, Disposable, QuickPickItem, QuickPickOptions, TextDocumentShowOptions, TextEditor, Uri, window } from 'vscode';
-import { Commands, openEditor } from '../commands';
-import { Keyboard, KeyboardScope, KeyMapping, Keys } from '../keyboard';
+import { openEditor } from '../commands';
+import { configuration } from '../configuration';
+import { Keyboard, KeyMapping, Keys } from '../keyboard';
 
 // import { Logger } from '../logger';
 
@@ -24,9 +25,7 @@ export function showQuickPickProgress(message: string, mapping?: KeyMapping, del
 }
 
 async function _showQuickPickProgress(message: string, cancellation: CancellationTokenSource, mapping?: KeyMapping) {
-        // Logger.log(`showQuickPickProgress`, `show`, message);
-
-        const scope: KeyboardScope | undefined = mapping && await Keyboard.instance.beginScope(mapping);
+        const scope = mapping && await Keyboard.instance.beginScope(mapping);
 
         try {
             await window.showQuickPick(_getInfiniteCancellablePromise(cancellation), {
@@ -37,8 +36,6 @@ async function _showQuickPickProgress(message: string, cancellation: Cancellatio
             // Not sure why this throws
         }
         finally {
-            // Logger.log(`showQuickPickProgress`, `cancel`, message);
-
             cancellation.cancel();
             scope && scope.dispose();
         }
@@ -60,15 +57,15 @@ export interface QuickPickItem extends QuickPickItem {
 
 export class CommandQuickPickItem implements QuickPickItem {
 
-    label: string;
-    description: string;
+    label!: string;
+    description!: string;
     detail?: string | undefined;
-    protected command: Commands | undefined;
+    protected command: string | undefined;
     protected args: any[] | undefined;
 
-    constructor(item: QuickPickItem, args?: [Commands, any[]]);
-    constructor(item: QuickPickItem, command?: Commands, args?: any[]);
-    constructor(item: QuickPickItem, commandOrArgs?: Commands | [Commands, any[]], args?: any[]) {
+    constructor(item: QuickPickItem, args?: [string, any[]]);
+    constructor(item: QuickPickItem, command?: string, args?: any[]);
+    constructor(item: QuickPickItem, commandOrArgs?: string | [string, any[]], args?: any[]) {
         if (commandOrArgs === undefined) {
             this.command = undefined;
             this.args = args;
@@ -106,6 +103,8 @@ export class OpenFileCommandQuickPickItem extends CommandQuickPickItem {
     }
 
     onDidSelect(): Promise<{} | undefined> {
+        if (!configuration.get<boolean>(configuration.name('autoPreview').value)) return Promise.resolve(undefined);
+
         return this.execute({
             preserveFocus: true,
             preview: true

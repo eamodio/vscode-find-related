@@ -4,7 +4,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [0.7.0] - 2018-04-22
+### Added
+- Adds `findrelated.autoPreview` setting to specify whether to automatically preview related files upon selection &mdash; closes [#6](https://github.com/eamodio/vscode-find-related/issues/6)
+- Adds `findrelated.ignoreExcludes` setting to specify whether to ignore file excludes when searching for related files &mdash; closes [#9](https://github.com/eamodio/vscode-find-related/issues/9)
 
 ## [0.6.0] - 2017-10-12
 ### Added

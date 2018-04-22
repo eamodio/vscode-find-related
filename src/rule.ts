@@ -1,14 +1,14 @@
 'use strict';
 import { TextDocument, Uri } from 'vscode';
 import { Logger } from './logger';
-import { RulesProvider } from './rulesProvider';
+import { IDynamicRule, RulesProvider } from './rulesProvider';
 // import * as glob from 'glob';
 
 const tokenReplacer = /(\$([0-9]))/g;
 
 export interface IRule {
     match(fileName: string): boolean;
-    provideRelated(fileName: string, document: TextDocument, rootPath: string | undefined): IterableIterator<Promise<Uri[]>>;
+    provideRelated(fileName: string, document: TextDocument, rootPath: string | undefined): Iterable<Promise<Uri[]>>;
 }
 
 export interface IRuleDefinition {
@@ -18,27 +18,33 @@ export interface IRuleDefinition {
 
 export class Rule implements IRule, IRuleDefinition {
 
-    pattern: string;
-    locators: string[];
-    matcher: RegExp;
+    readonly pattern!: string;
+    readonly locators!: string[];
+    readonly matcher: RegExp;
 
-    private _match: RegExpExecArray | null;
+    private _match: RegExpExecArray | null | undefined;
 
-    constructor(rule: IRuleDefinition, private rulesetName: string) {
+    constructor(
+        rule: IRuleDefinition,
+        private rulesetName: string
+    ) {
         Object.assign(this, rule);
         try {
             this.matcher = new RegExp(rule.pattern, 'i');
         }
         catch (ex) {
             Logger.error(ex, `Rule(${this.rulesetName}).ctor`, ex, rule.pattern);
+
+            throw ex;
         }
     }
 
     match(fileName: string): boolean {
-        if (!this.matcher) return false;
+        if (this.matcher === undefined) return false;
+
         try {
             this._match = this.matcher.exec(fileName);
-            const matches = !!(this._match && this._match.length);
+            const matches = this._match != null && this._match.length > 0;
             Logger.log(`Rule(${this.rulesetName}).match(${fileName})=${matches}`, this.pattern);
             return matches;
         }
@@ -48,7 +54,7 @@ export class Rule implements IRule, IRuleDefinition {
         }
     }
 
-    *provideRelated(fileName: string, document: TextDocument, rootPath: string): IterableIterator<Promise<Uri[]>> {
+    *provideRelated(fileName: string, document: TextDocument, rootPath: string): Iterable<Promise<Uri[]>> {
         for (const locator of this.locators) {
             if (this._match == null) continue;
 
@@ -74,4 +80,9 @@ export class Rule implements IRule, IRuleDefinition {
     //         });
     //     });
     // }
+
+    static isDynamic(rule: IDynamicRule | IRuleDefinition): rule is IDynamicRule {
+        return (typeof (rule as IDynamicRule).match === 'function') &&
+            (typeof (rule as IDynamicRule).provideRelated === 'function');
+    }
 }
