@@ -7,7 +7,7 @@
     },
     "publisher": "eamodio",
     "engines": {
-        "vscode": "^1.22.0"
+        "vscode": "^1.28.0"
     },
     "license": "SEE LICENSE IN LICENSE",
     "displayName": "Find Related Files",
@@ -43,7 +43,7 @@
         "type": "git",
         "url": "https://github.com/eamodio/vscode-find-related.git"
     },
-    "main": "./out/src/extension",
+    "main": "./dist/extension",
     "contributes": {
         "configuration": {
             "type": "object",
@@ -228,26 +228,37 @@
         "onCommand:findrelated.show"
     ],
     "scripts": {
-        "build": "npm run lint && tsc -p ./",
-        "clean": "git clean -Xdf",
+        "build": "webpack --env.development",
+        "bundle": "webpack --env.production",
+        "clean": "git clean -Xdf -e !.cache-images",
         "lint": "tslint --project tsconfig.json",
         "pack": "vsce package",
+        "pretty": "prettier --config .prettierrc --loglevel warn --write \"./**/*.{ts,md,json}\" && tslint --project tsconfig.json --fix",
         "pub": "vsce publish",
+        "rebuild": "npm run reset && npm run build",
         "reset": "npm run clean && npm install --no-save",
-        "watch": "tsc -watch -p ./",
+        "watch": "webpack --watch --env.development --info-verbosity verbose",
         "postinstall": "node ./node_modules/vscode/bin/install",
-        "prepush": "npm run build",
-        "vscode:prepublish": "npm run reset && npm run build"
+        "vscode:prepublish": "npm run reset && npm run bundle"
     },
     "dependencies": {
-        "lodash.union": "4.6.0"
+        "lodash-es": "4.17.11"
     },
     "devDependencies": {
-        "@types/lodash.union": "4.6.3",
-        "@types/node": "9.6.6",
-        "husky": "0.14.3",
-        "tslint": "5.9.1",
-        "typescript": "2.8.3",
-        "vscode": "1.1.14"
+        "@types/lodash-es": "4.17.1",
+        "@types/node": "8.10.37",
+        "clean-webpack-plugin": "0.1.19",
+        "prettier": "1.15.2",
+        "prettier-tslint": "0.4.0",
+        "terser-webpack-plugin": "1.1.0",
+        "tslint": "5.11.0",
+        "tslint-loader": "3.5.4",
+        "tslint-prettiest": "0.0.1",
+        "ts-loader": "5.3.0",
+        "typescript": "3.1.6",
+        "vsce": "1.53.0",
+        "vscode": "1.1.21",
+        "webpack": "4.25.1",
+        "webpack-cli": "3.1.2"
     }
 }

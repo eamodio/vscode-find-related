@@ -1,23 +1,23 @@
 'use strict';
 import { TextDocument, Uri } from 'vscode';
+import { RuleDefinition } from './configuration';
 import { Logger } from './logger';
-import { IDynamicRule, RulesProvider } from './rulesProvider';
+import { RulesProvider } from './rulesProvider';
 // import * as glob from 'glob';
 
 const tokenReplacer = /(\$([0-9]))/g;
 
+export interface DynamicRule {
+    match(fileName: string): boolean;
+    provideRelated(fileName: string, document: TextDocument, rootPath: string): Promise<Uri[]>;
+}
+
 export interface IRule {
     match(fileName: string): boolean;
-    provideRelated(fileName: string, document: TextDocument, rootPath: string | undefined): Iterable<Promise<Uri[]>>;
+    provideRelated(fileName: string, document: TextDocument, rootPath: string): Iterable<Promise<Uri[]>>;
 }
 
-export interface IRuleDefinition {
-    pattern: string;
-    locators: string[];
-}
-
-export class Rule implements IRule, IRuleDefinition {
-
+export class Rule implements IRule, RuleDefinition {
     readonly pattern!: string;
     readonly locators!: string[];
     readonly matcher: RegExp;
@@ -25,7 +25,7 @@ export class Rule implements IRule, IRuleDefinition {
     private _match: RegExpExecArray | null | undefined;
 
     constructor(
-        rule: IRuleDefinition,
+        rule: RuleDefinition,
         private rulesetName: string
     ) {
         Object.assign(this, rule);
@@ -59,7 +59,10 @@ export class Rule implements IRule, IRuleDefinition {
             if (this._match == null) continue;
 
             const globPattern = Rule.replaceTokens(locator, this._match);
-            Logger.log(`Rule(${this.rulesetName}).provideRelated(${fileName}, ${rootPath})`, `globPattern=${globPattern}`);
+            Logger.log(
+                `Rule(${this.rulesetName}).provideRelated(${fileName}, ${rootPath})`,
+                `globPattern=${globPattern}`
+            );
             // yield Rule.globAsync(globPattern, { cwd: rootPath, nocase: true });
             yield RulesProvider.findFiles(globPattern);
         }
@@ -81,8 +84,10 @@ export class Rule implements IRule, IRuleDefinition {
     //     });
     // }
 
-    static isDynamic(rule: IDynamicRule | IRuleDefinition): rule is IDynamicRule {
-        return (typeof (rule as IDynamicRule).match === 'function') &&
-            (typeof (rule as IDynamicRule).provideRelated === 'function');
+    static isDynamic(rule: DynamicRule | RuleDefinition): rule is DynamicRule {
+        return (
+            typeof (rule as DynamicRule).match === 'function' &&
+            typeof (rule as DynamicRule).provideRelated === 'function'
+        );
     }
 }

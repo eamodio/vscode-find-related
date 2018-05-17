@@ -5,58 +5,38 @@
 // ${fileDirname}: the current opened file's dirname
 // ${fileExtname}: the current opened file's extension
 // ${cwd}: the current working directory of the spawned process
-
 // A task runner that calls a custom npm script that compiles the extension.
 {
     "version": "2.0.0",
     "presentation": {
-        "echo": true,
+        "echo": false,
         "reveal": "always",
         "focus": false,
-        "panel": "shared"
+        "panel": "dedicated",
+        "showReuseMessage": false
     },
     "tasks": [
         {
-            "label": "build",
             "type": "npm",
             "script": "build",
-            "problemMatcher": [
-                "$tsc",
-                "$tslint5"
-            ],
+            "group": "build",
+            "problemMatcher": ["$ts-webpack", "$tslint-webpack"]
+        },
+        {
+            "type": "npm",
+            "script": "lint",
+            "group": "build",
+            "problemMatcher": ["$tslint5"]
+        },
+        {
+            "type": "npm",
+            "script": "watch",
             "group": {
                 "kind": "build",
                 "isDefault": true
-            }
-        },
-        {
-            "label": "lint",
-            "type": "npm",
-            "script": "lint",
-            "problemMatcher": [
-                "$tslint5"
-            ],
-            "group": "build"
-        },
-        {
-            "label": "rebuild",
-            "type": "npm",
-            "script": "rebuild",
-            "problemMatcher": [
-                "$tsc",
-                "$tslint5"
-            ],
-            "group": "build"
-        },
-        {
-            "label": "watch",
-            "type": "npm",
-            "script": "watch",
+            },
             "isBackground": true,
-            "problemMatcher": [
-                "$tsc-watch"
-            ],
-            "group": "build"
+            "problemMatcher": ["$ts-webpack-watch", "$tslint-webpack-watch"]
         }
     ]
 }

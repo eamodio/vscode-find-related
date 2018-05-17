@@ -1,23 +1,15 @@
 'use strict';
 import { ExtensionContext } from 'vscode';
-import { Commands } from './commands';
-import { FindRelatedApi } from './extensionApi';
-import { Keyboard } from './keyboard';
+import { Config, Configuration, configuration } from './configuration';
+import { Container } from './container';
 import { Logger } from './logger';
-import { RulesProvider } from './rulesProvider';
 
 export async function activate(context: ExtensionContext) {
     Logger.configure(context);
+    Configuration.configure(context);
+    Container.initialize(context, configuration.get<Config>());
 
-    const rulesProvider = new RulesProvider(context);
-    context.subscriptions.push(rulesProvider);
-
-    context.subscriptions.push(new Keyboard());
-    context.subscriptions.push(new Commands(rulesProvider));
-
-    const api = new FindRelatedApi(context, rulesProvider);
-    context.subscriptions.push(api);
-    return api;
+    return Container.api;
 }
 
-export function deactivate() { }
+export function deactivate() {}
