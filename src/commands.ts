@@ -1,6 +1,6 @@
 'use strict';
 import { Arrays, Strings } from './system';
-import { commands, Disposable, TextDocument, TextDocumentShowOptions, TextEditor, Uri, window, workspace } from 'vscode';
+import { commands, Disposable, TextDocument, TextDocumentShowOptions, TextEditor, Uri, ViewColumn, window, workspace } from 'vscode';
 import { configuration, ExtensionKey, IConfig } from './configuration';
 import { Logger } from './logger';
 import { RelatedQuickPick } from './quickPicks';
@@ -51,6 +51,15 @@ function command(command: string, options: CommandOptions = {}): Function {
             options: options
         });
     };
+}
+
+function defaultViewColumn(activeTextEditor: TextEditor | undefined): ViewColumn {
+    let column: ViewColumn = (activeTextEditor && activeTextEditor.viewColumn) || ViewColumn.One;
+    const cfg = configuration.get<IConfig>();
+    if (cfg.openSideBySide) {
+        column = column === ViewColumn.Three ? ViewColumn.One : column + 1;
+    }
+    return column;
 }
 
 export class Commands extends Disposable {
@@ -117,7 +126,7 @@ export async function openEditor(uri: Uri, options?: TextDocumentShowOptions): P
         const defaults: TextDocumentShowOptions = {
             preserveFocus: false,
             preview: true,
-            viewColumn: (window.activeTextEditor && window.activeTextEditor.viewColumn) || 1
+            viewColumn: defaultViewColumn(window.activeTextEditor)
         };
 
         const document = await workspace.openTextDocument(uri);

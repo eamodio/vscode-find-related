@@ -167,6 +167,11 @@
                     "default": false,
                     "description": "Specifies whether to automatically open the related file if there is only 1 result"
                 },
+                "findrelated.openSideBySide": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Specifies whether to open the related file to the side"
+                },
                 "findrelated.autoPreview": {
                     "type": "boolean",
                     "default": true,

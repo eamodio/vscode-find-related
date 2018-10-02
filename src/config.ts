@@ -13,6 +13,7 @@ export interface IConfig {
     applyWorkspaceRulesets: string[];
     autoOpen: boolean;
     autoPreview: boolean;
+    openSideBySide: boolean;
     debug: boolean;
     ignoreExcludes: boolean;
     openPreview: boolean;
