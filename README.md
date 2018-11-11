@@ -107,6 +107,7 @@ Please open new [Github issues](https://github.com/eamodio/vscode-find-related/i
 |`findrelated.autoPreview`|Specifies whether to automatically preview related files upon selection
 |`findrelated.ignoreExcludes`|Specifies whether to ignore file excludes when searching for related files
 |`findrelated.openPreview`|Specifies whether or not to open the related file in a preview tab
+|`findrelated.openSideBySide`|Specifies whether to open the related file to the side
 
 ## Extension API
 
