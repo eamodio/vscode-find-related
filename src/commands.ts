@@ -56,7 +56,12 @@ export class Commands implements Disposable {
             if (progressCancellation.token.isCancellationRequested) return undefined;
 
             const cfg = Container.config;
-            if (uris.length === 1 && cfg.autoOpen) return await openEditor(uris[0], { preview: cfg.openPreview });
+            if (cfg.autoOpen && uris.length === 1) {
+                return await openEditor(uris[0], {
+                    preview: cfg.openPreview,
+                    openSideBySide: cfg.openSideBySide
+                });
+            }
 
             const pick = await RelatedQuickPick.show(uris, placeHolder, progressCancellation);
             if (pick === undefined) return undefined;
@@ -83,18 +88,23 @@ export class Commands implements Disposable {
     }
 }
 
-export async function openEditor(uri: Uri, options?: TextDocumentShowOptions): Promise<TextEditor | undefined> {
+export async function openEditor(
+    uri: Uri,
+    options?: TextDocumentShowOptions & { openSideBySide?: boolean }
+): Promise<TextEditor | undefined> {
+    const { openSideBySide = false, ...opts } = options || {};
+
     try {
         const defaults: TextDocumentShowOptions = {
             preserveFocus: false,
             preview: true,
-            viewColumn: Container.config.openSideBySide
+            viewColumn: openSideBySide
                 ? ViewColumn.Beside
                 : (window.activeTextEditor && window.activeTextEditor.viewColumn) || ViewColumn.One
         };
 
         const document = await workspace.openTextDocument(uri);
-        return window.showTextDocument(document, { ...defaults, ...(options || {}) });
+        return window.showTextDocument(document, { ...defaults, ...opts });
     }
     catch (ex) {
         Logger.error(ex, 'openEditor');

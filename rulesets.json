@@ -51,7 +51,7 @@
         "name": "aspnet-mvc",
         "rules": [
             {
-                "pattern": "(.*)\/views\/(.*?)(?:\/.*)?\\.cshtml$",
+                "pattern": "(.*)/views/(.*?)(?:/.*)?\\.cshtml$",
                 "locators": ["$1/**/Controllers/**/$2Controller.cs"]
             },
             {

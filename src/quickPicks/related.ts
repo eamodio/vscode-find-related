@@ -9,27 +9,55 @@ import {
     window,
     workspace
 } from 'vscode';
-import { Config } from '../configuration';
-import { extensionId } from '../constants';
+import { openEditor } from '../commands';
 import { Container } from '../container';
-import { OpenFileCommandQuickPickItem, QuickPickItem, showQuickPickProgress } from './common';
+import { Keys } from '../keyboard';
+import { CommandQuickPickItem, QuickPickItem, showQuickPickProgress } from './common';
 
-export class RelatedFileQuickPickItem extends OpenFileCommandQuickPickItem {
+export class RelatedFileQuickPickItem extends CommandQuickPickItem {
+    readonly uri: Uri;
+
     constructor(uri: Uri) {
         const directory = path.dirname(workspace.asRelativePath(uri));
 
-        super(uri, {
-            label: `$(file-symlink-file) ${path.basename(uri.fsPath)}`,
-            description: directory === '.' ? '' : directory
+        super(
+            {
+                label: `$(file-symlink-file) ${path.basename(uri.fsPath)}`,
+                description: directory === '.' ? '' : directory
+            },
+            undefined,
+            undefined
+        );
+
+        this.uri = uri;
+    }
+
+    onDidSelect(): Promise<{} | undefined> {
+        if (!Container.config.autoPreview) return Promise.resolve(undefined);
+
+        return this.execute({
+            preserveFocus: true,
+            preview: true
         });
     }
 
-    async execute(options: TextDocumentShowOptions = {}): Promise<TextEditor | undefined> {
-        if (options.preview === undefined) {
-            const cfg = workspace.getConfiguration().get<Config>(extensionId);
-            options.preview = cfg && cfg.openPreview;
+    onDidPressKey(key: Keys): Promise<{} | undefined> {
+        return this.execute({
+            preserveFocus: true,
+            preview: false
+        });
+    }
+    async execute(
+        options: TextDocumentShowOptions & { openSideBySide?: boolean } = {}
+    ): Promise<TextEditor | undefined> {
+        if (options.openSideBySide === undefined) {
+            options.openSideBySide = Container.config.openSideBySide;
         }
-        return super.execute(options);
+        if (options.preview === undefined) {
+            options.preview = Container.config.openPreview;
+        }
+
+        return openEditor(this.uri, options);
     }
 }
 

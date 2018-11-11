@@ -1,17 +1,5 @@
 'use strict';
-import {
-    CancellationTokenSource,
-    commands,
-    Disposable,
-    QuickPickItem,
-    QuickPickOptions,
-    TextDocumentShowOptions,
-    TextEditor,
-    Uri,
-    window
-} from 'vscode';
-import { openEditor } from '../commands';
-import { configuration } from '../configuration';
+import { CancellationTokenSource, commands, Disposable, QuickPickItem, QuickPickOptions, window } from 'vscode';
 import { Container } from '../container';
 import { KeyMapping, Keys } from '../keyboard';
 // import { Logger } from '../logger';
@@ -106,59 +94,5 @@ export class CommandQuickPickItem implements QuickPickItem {
 
     onDidPressKey(key: Keys): Promise<{} | undefined> {
         return this.execute();
-    }
-}
-
-export class OpenFileCommandQuickPickItem extends CommandQuickPickItem {
-    constructor(
-        public uri: Uri,
-        item: QuickPickItem
-    ) {
-        super(item, undefined, undefined);
-    }
-
-    async execute(options?: TextDocumentShowOptions): Promise<TextEditor | undefined> {
-        return openEditor(this.uri, options);
-    }
-
-    onDidSelect(): Promise<{} | undefined> {
-        if (!configuration.get<boolean>(configuration.name('autoPreview').value)) return Promise.resolve(undefined);
-
-        return this.execute({
-            preserveFocus: true,
-            preview: true
-        });
-    }
-
-    onDidPressKey(key: Keys): Promise<{} | undefined> {
-        return this.execute({
-            preserveFocus: true,
-            preview: false
-        });
-    }
-}
-
-export class OpenFilesCommandQuickPickItem extends CommandQuickPickItem {
-    constructor(
-        public uris: Uri[],
-        item: QuickPickItem
-    ) {
-        super(item, undefined, undefined);
-    }
-
-    async execute(
-        options: TextDocumentShowOptions = { preserveFocus: false, preview: false }
-    ): Promise<{} | undefined> {
-        for (const uri of this.uris) {
-            await openEditor(uri, options);
-        }
-        return undefined;
-    }
-
-    async onDidPressKey(key: Keys): Promise<{} | undefined> {
-        return this.execute({
-            preserveFocus: true,
-            preview: false
-        });
     }
 }
