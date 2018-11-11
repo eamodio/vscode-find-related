@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.8.0] - 2018-11-11
+
+### Added
+
+- Adds `findrelated.openSideBySide` setting to specify whether to open the related file to the side &mdash; thanks to [PR #11](https://github.com/eamodio/vscode-find-related/pull/11) by Alessandro Fragnani ([@alefragnani](https://github.com/alefragnani))
+
+### Changed
+
+- Improves size and performance by bundling the extension and its dependencies with webpack
+
 ## [0.7.0] - 2018-04-22
 
 ### Added

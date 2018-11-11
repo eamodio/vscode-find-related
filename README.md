@@ -22,6 +22,8 @@ Please open new [Github issues](https://github.com/eamodio/vscode-find-related/i
 
 ![FindRelated screenshot](https://raw.githubusercontent.com/eamodio/vscode-find-related/master/images/screenshot.png)
 
+---
+
 ## Built-in rulesets
 
 ```
@@ -97,6 +99,8 @@ Please open new [Github issues](https://github.com/eamodio/vscode-find-related/i
 `pattern` - specifies a regex pattern to which this rule applies; Capture groups can be used as replacements in the `locators`
 `locators` - specifies the list of glob pattern locators that will be used to search for related files; `$[0-9]` can be use as replacement tokens from the capture groups in the `pattern`
 
+---
+
 ## Extension Settings
 
 | Name                              | Description                                                                                                                               |
@@ -110,6 +114,8 @@ Please open new [Github issues](https://github.com/eamodio/vscode-find-related/i
 | `findrelated.ignoreExcludes`      | Specifies whether to ignore file excludes when searching for related files                                                                |
 | `findrelated.openPreview`         | Specifies whether or not to open the related file in a preview tab                                                                        |
 | `findrelated.openSideBySide`      | Specifies whether to open the related file to the side                                                                                    |
+
+---
 
 ## Extension API
 
@@ -142,6 +148,10 @@ subscription1.dispose();
 subscription2.dispose();
 ```
 
-## Known Issues
+---
 
-None
+## Contributors &#x1F64F;&#x2764;
+
+A big thanks to the people that have contributed to this project:
+
+- Alessandro Fragnani ([@alefragnani](https://github.com/alefragnani)) &mdash; [contributions](https://github.com/eamodio/vscode-find-related/commits?author=alefragnani)
