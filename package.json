@@ -1,40 +1,14 @@
 {
     "name": "find-related",
-    "version": "0.8.0",
+    "displayName": "Find Related Files",
+    "description": "Finds files related to the current file based on user-defined configuration rules",
+    "version": "0.8.1",
     "author": {
         "name": "Eric Amodio",
         "email": "eamodio@gmail.com"
     },
     "publisher": "eamodio",
-    "engines": {
-        "vscode": "^1.28.0"
-    },
     "license": "SEE LICENSE IN LICENSE",
-    "displayName": "Find Related Files",
-    "description": "Finds files related to the current file based on user-defined configuration rules",
-    "badges": [
-        {
-            "url": "https://img.shields.io/badge/chat-on%20slack-brightgreen.svg",
-            "href": "https://join.slack.com/t/vscode-dev-community/shared_invite/enQtMjIxOTgxNDE3NzM0LWU5M2ZiZDU1YjBlMzdlZjA2YjBjYzRhYTM5NTgzMTAxMjdiNWU0ZmQzYWI3MWU5N2Q1YjBiYmQ4MzY0NDE1MzY",
-            "description": "Join us in the #find-related-files channel"
-        }
-    ],
-    "categories": [
-        "Other"
-    ],
-    "keywords": [
-        "find",
-        "related",
-        "files",
-        "open",
-        "similar"
-    ],
-    "galleryBanner": {
-        "color": "#56098c",
-        "theme": "dark"
-    },
-    "icon": "images/icon.png",
-    "preview": false,
     "homepage": "https://github.com/eamodio/vscode-find-related/blob/master/README.md",
     "bugs": {
         "url": "https://github.com/eamodio/vscode-find-related/issues"
@@ -43,7 +17,36 @@
         "type": "git",
         "url": "https://github.com/eamodio/vscode-find-related.git"
     },
+    "engines": {
+        "vscode": "^1.28.0"
+    },
     "main": "./dist/extension",
+    "icon": "images/icon.png",
+    "preview": false,
+    "badges": [
+        {
+            "url": "https://img.shields.io/badge/vscode--dev--community-find--related--files-blue.svg?logo=slack&labelColor=555555",
+            "href": "https://vscode-slack.amod.io",
+            "description": "Join us in the #find-related-files channel"
+        }
+    ],
+    "categories": [
+        "Other"
+    ],
+    "galleryBanner": {
+        "color": "#56098c",
+        "theme": "dark"
+    },
+    "keywords": [
+        "find",
+        "related",
+        "files",
+        "open",
+        "similar"
+    ],
+    "activationEvents": [
+        "onCommand:findrelated.show"
+    ],
     "contributes": {
         "configuration": {
             "type": "object",
@@ -220,9 +223,6 @@
             }
         ]
     },
-    "activationEvents": [
-        "onCommand:findrelated.show"
-    ],
     "scripts": {
         "build": "webpack --env.development",
         "bundle": "webpack --env.production",

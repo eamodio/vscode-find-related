@@ -11,10 +11,12 @@ Finds files related to the current file based on user-defined configuration rule
 
 Basic support for the following languages/frameworks is [built-in](#built-in-rulesets):
 
+- minified files
 - c, c++, c#
 - asp.net
 - asp.net mvc
 - aurelia
+- xaml
 
 Please open new [Github issues](https://github.com/eamodio/vscode-find-related/issues) with any rules you'd like included in the built-in ruleset.
 
@@ -28,6 +30,15 @@ Please open new [Github issues](https://github.com/eamodio/vscode-find-related/i
 
 ```
 [
+    {
+        "name": "minified",
+        "rules": [
+            {
+                "pattern": "(.*?)(\\.min)?\\.(js|css)(?:\\.map)?$",
+                "locators": ["{$1.$3,$1.min.$3,$1.$3.map,$1.min.$3.map}"]
+            }
+        ]
+    },
     {
         "name": "c/c++",
         "rules": [
@@ -71,7 +82,7 @@ Please open new [Github issues](https://github.com/eamodio/vscode-find-related/i
         "name": "aspnet-mvc",
         "rules": [
             {
-                "pattern": "(.*)\/views\/(.*?)(?:\/.*)?\\.cshtml$",
+                "pattern": "(.*)/views/(.*?)(?:/.*)?\\.cshtml$",
                 "locators": ["$1/**/Controllers/**/$2Controller.cs"]
             },
             {
@@ -90,6 +101,19 @@ Please open new [Github issues](https://github.com/eamodio/vscode-find-related/i
             {
                 "pattern": "(.*)\\.(?:ts|js)$",
                 "locators": ["$1.html"]
+            }
+        ]
+    },
+    {
+        "name": "xaml",
+        "rules": [
+            {
+                "pattern": "(.*)\\.xaml$",
+                "locators": ["$1.xaml.cs"]
+            },
+            {
+                "pattern": "(.*)\\.xaml\\.cs$",
+                "locators": ["$1.xaml"]
             }
         ]
     }
@@ -114,6 +138,7 @@ Please open new [Github issues](https://github.com/eamodio/vscode-find-related/i
 | `findrelated.ignoreExcludes`      | Specifies whether to ignore file excludes when searching for related files                                                                |
 | `findrelated.openPreview`         | Specifies whether or not to open the related file in a preview tab                                                                        |
 | `findrelated.openSideBySide`      | Specifies whether to open the related file to the side                                                                                    |
+| `findrelated.outputLevel`         | Specifies how much (if any) output will be sent to the FindRelated output channel                                                         |
 
 ---
 

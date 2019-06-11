@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.8.1] - 2019-06-11
+
+### Added
+
+- Adds xaml ruleset
+
+### Fixed
+
+- Fixes issues with mutli-root workspaces
+
 ## [0.8.0] - 2018-11-11
 
 ### Added
