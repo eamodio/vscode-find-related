@@ -40,7 +40,7 @@ export class Commands implements Disposable {
         const editor = window.activeTextEditor;
         if (editor === undefined || editor.document === undefined || editor.document.isUntitled) return undefined;
 
-        const fileName = Strings.normalizePath(workspace.asRelativePath(editor.document.fileName));
+        const fileName = Strings.normalizePath(workspace.asRelativePath(editor.document.fileName, false));
 
         const placeHolder = `files related to ${path.basename(fileName)} \u00a0\u2022\u00a0 ${path.dirname(fileName)}`;
         const progressCancellation = RelatedQuickPick.showProgress(placeHolder);

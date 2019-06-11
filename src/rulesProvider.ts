@@ -142,10 +142,11 @@ export class RulesProvider implements Disposable {
         this.rules = rules;
     }
 
-    static findFiles(pattern: string, maxResults?: number, token?: CancellationToken): Promise<Uri[]> {
+    static async findFiles(pattern: string, rootPath: string, maxResults?: number, token?: CancellationToken): Promise<Uri[]> {
         Logger.log(`RulesProvider.findFiles(${pattern}, ${maxResults})`);
 
-        return workspace.findFiles(pattern, this._excludes, maxResults, token) as Promise<Uri[]>;
+        const files = await workspace.findFiles({ base: rootPath, pattern: pattern }, this._excludes, maxResults, token);
+        return files;
     }
 
     // private static getFindFilesExcludes(): string| undefined {

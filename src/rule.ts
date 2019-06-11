@@ -62,7 +62,7 @@ export class Rule implements IRule, RuleDefinition {
                 `globPattern=${globPattern}`
             );
             // yield Rule.globAsync(globPattern, { cwd: rootPath, nocase: true });
-            yield RulesProvider.findFiles(globPattern);
+            yield RulesProvider.findFiles(globPattern, rootPath);
         }
     }
 
