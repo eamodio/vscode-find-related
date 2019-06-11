@@ -1,90 +1,95 @@
 'use strict';
-import { ConfigurationChangeEvent, ExtensionContext, OutputChannel, Uri, window } from 'vscode';
-import { configuration, LogLevel } from './configuration';
+import { ExtensionContext, OutputChannel, Uri, window } from 'vscode';
 import { extensionOutputChannelName } from './constants';
 import { getCorrelationContext } from './system';
 // import { Telemetry } from './telemetry';
 
-export { LogLevel } from './configuration';
+const emptyStr = '';
+
+export enum TraceLevel {
+    Silent = 'silent',
+    Errors = 'errors',
+    Verbose = 'verbose',
+    Debug = 'debug'
+}
 
 const ConsolePrefix = `[${extensionOutputChannelName}]`;
 
 const isDebuggingRegex = /\bfindrelated\b/i;
 
 export interface LogCorrelationContext {
-    correlationId?: number;
-    prefix: string;
+    readonly correlationId?: number;
+    readonly prefix: string;
+    exitDetails?: string;
 }
 
 export class Logger {
-    static level: LogLevel = LogLevel.Silent;
     static output: OutputChannel | undefined;
     static customLoggableFn: ((o: object) => string | undefined) | undefined;
 
-    static configure(context: ExtensionContext, loggableFn?: (o: any) => string | undefined) {
+    static configure(context: ExtensionContext, level: TraceLevel, loggableFn?: (o: any) => string | undefined) {
         this.customLoggableFn = loggableFn;
 
-        context.subscriptions.push(configuration.onDidChange(this.onConfigurationChanged, this));
-        this.onConfigurationChanged(configuration.initializingChangeEvent);
+        this.level = level;
     }
 
-    private static onConfigurationChanged(e: ConfigurationChangeEvent) {
-        const section = configuration.name('outputLevel').value;
-        if (configuration.changed(e, section)) {
-            this.level = configuration.get<LogLevel>(section);
-
-            if (this.level === LogLevel.Silent) {
-                if (this.output !== undefined) {
-                    this.output.dispose();
-                    this.output = undefined;
-                }
+    private static _level: TraceLevel = TraceLevel.Silent;
+    static get level() {
+        return this._level;
+    }
+    static set level(value: TraceLevel) {
+        this._level = value;
+        if (value === TraceLevel.Silent) {
+            if (this.output !== undefined) {
+                this.output.dispose();
+                this.output = undefined;
             }
-            else {
-                this.output = this.output || window.createOutputChannel(extensionOutputChannelName);
-            }
+        }
+        else {
+            this.output = this.output || window.createOutputChannel(extensionOutputChannelName);
         }
     }
 
     static debug(message: string, ...params: any[]): void;
     static debug(context: LogCorrelationContext | undefined, message: string, ...params: any[]): void;
-    static debug(callerOrMessage: LogCorrelationContext | string | undefined, ...params: any[]): void {
-        if (this.level !== LogLevel.Debug && !Logger.isDebugging) return;
+    static debug(contextOrMessage: LogCorrelationContext | string | undefined, ...params: any[]): void {
+        if (this.level !== TraceLevel.Debug && !Logger.isDebugging) return;
 
         let message;
-        if (typeof callerOrMessage === 'string') {
-            message = callerOrMessage;
+        if (typeof contextOrMessage === 'string') {
+            message = contextOrMessage;
         }
         else {
             message = params.shift();
 
-            if (callerOrMessage !== undefined) {
-                message = `${callerOrMessage.prefix} ${message || ''}`;
+            if (contextOrMessage !== undefined) {
+                message = `${contextOrMessage.prefix} ${message || emptyStr}`;
             }
         }
 
         if (Logger.isDebugging) {
-            console.log(this.timestamp, ConsolePrefix, message || '', ...params);
+            console.log(this.timestamp, ConsolePrefix, message || emptyStr, ...params);
         }
 
-        if (this.output !== undefined && this.level === LogLevel.Debug) {
-            this.output.appendLine(`${this.timestamp} ${message || ''} ${this.toLoggableParams(true, params)}`);
+        if (this.output !== undefined && this.level === TraceLevel.Debug) {
+            this.output.appendLine(`${this.timestamp} ${message || emptyStr}${this.toLoggableParams(true, params)}`);
         }
     }
 
     static error(ex: Error, message?: string, ...params: any[]): void;
     static error(ex: Error, context?: LogCorrelationContext, message?: string, ...params: any[]): void;
-    static error(ex: Error, callerOrMessage: LogCorrelationContext | string | undefined, ...params: any[]): void {
-        if (this.level === LogLevel.Silent && !Logger.isDebugging) return;
+    static error(ex: Error, contextOrMessage: LogCorrelationContext | string | undefined, ...params: any[]): void {
+        if (this.level === TraceLevel.Silent && !Logger.isDebugging) return;
 
         let message;
-        if (callerOrMessage === undefined || typeof callerOrMessage === 'string') {
-            message = callerOrMessage;
+        if (contextOrMessage === undefined || typeof contextOrMessage === 'string') {
+            message = contextOrMessage;
         }
         else {
             message = params.shift();
 
-            if (callerOrMessage !== undefined) {
-                message = `${callerOrMessage.prefix} ${message || ''}`;
+            if (contextOrMessage !== undefined) {
+                message = `${contextOrMessage.prefix} ${message || emptyStr}`;
             }
         }
 
@@ -99,11 +104,13 @@ export class Logger {
         }
 
         if (Logger.isDebugging) {
-            console.error(this.timestamp, ConsolePrefix, message || '', ...params, ex);
+            console.error(this.timestamp, ConsolePrefix, message || emptyStr, ...params, ex);
         }
 
-        if (this.output !== undefined && this.level !== LogLevel.Silent) {
-            this.output.appendLine(`${this.timestamp} ${message || ''} ${this.toLoggableParams(false, params)}\n${ex}`);
+        if (this.output !== undefined && this.level !== TraceLevel.Silent) {
+            this.output.appendLine(
+                `${this.timestamp} ${message || emptyStr}${this.toLoggableParams(false, params)}\n${ex}`
+            );
         }
 
         // Telemetry.trackException(ex);
@@ -115,83 +122,83 @@ export class Logger {
 
     static log(message: string, ...params: any[]): void;
     static log(context: LogCorrelationContext | undefined, message: string, ...params: any[]): void;
-    static log(callerOrMessage: LogCorrelationContext | string | undefined, ...params: any[]): void {
-        if (this.level !== LogLevel.Verbose && this.level !== LogLevel.Debug && !Logger.isDebugging) {
+    static log(contextOrMessage: LogCorrelationContext | string | undefined, ...params: any[]): void {
+        if (this.level !== TraceLevel.Verbose && this.level !== TraceLevel.Debug && !Logger.isDebugging) {
             return;
         }
 
         let message;
-        if (typeof callerOrMessage === 'string') {
-            message = callerOrMessage;
+        if (typeof contextOrMessage === 'string') {
+            message = contextOrMessage;
         }
         else {
             message = params.shift();
 
-            if (callerOrMessage !== undefined) {
-                message = `${callerOrMessage.prefix} ${message || ''}`;
+            if (contextOrMessage !== undefined) {
+                message = `${contextOrMessage.prefix} ${message || emptyStr}`;
             }
         }
 
         if (Logger.isDebugging) {
-            console.log(this.timestamp, ConsolePrefix, message || '', ...params);
+            console.log(this.timestamp, ConsolePrefix, message || emptyStr, ...params);
         }
 
-        if (this.output !== undefined && (this.level === LogLevel.Verbose || this.level === LogLevel.Debug)) {
-            this.output.appendLine(`${this.timestamp} ${message || ''} ${this.toLoggableParams(false, params)}`);
+        if (this.output !== undefined && (this.level === TraceLevel.Verbose || this.level === TraceLevel.Debug)) {
+            this.output.appendLine(`${this.timestamp} ${message || emptyStr}${this.toLoggableParams(false, params)}`);
         }
     }
 
     static logWithDebugParams(message: string, ...params: any[]): void;
     static logWithDebugParams(context: LogCorrelationContext | undefined, message: string, ...params: any[]): void;
-    static logWithDebugParams(callerOrMessage: LogCorrelationContext | string | undefined, ...params: any[]): void {
-        if (this.level !== LogLevel.Verbose && this.level !== LogLevel.Debug && !Logger.isDebugging) {
+    static logWithDebugParams(contextOrMessage: LogCorrelationContext | string | undefined, ...params: any[]): void {
+        if (this.level !== TraceLevel.Verbose && this.level !== TraceLevel.Debug && !Logger.isDebugging) {
             return;
         }
 
         let message;
-        if (typeof callerOrMessage === 'string') {
-            message = callerOrMessage;
+        if (typeof contextOrMessage === 'string') {
+            message = contextOrMessage;
         }
         else {
             message = params.shift();
 
-            if (callerOrMessage !== undefined) {
-                message = `${callerOrMessage.prefix} ${message || ''}`;
+            if (contextOrMessage !== undefined) {
+                message = `${contextOrMessage.prefix} ${message || emptyStr}`;
             }
         }
 
         if (Logger.isDebugging) {
-            console.log(this.timestamp, ConsolePrefix, message || '', ...params);
+            console.log(this.timestamp, ConsolePrefix, message || emptyStr, ...params);
         }
 
-        if (this.output !== undefined && (this.level === LogLevel.Verbose || this.level === LogLevel.Debug)) {
-            this.output.appendLine(`${this.timestamp} ${message || ''} ${this.toLoggableParams(true, params)}`);
+        if (this.output !== undefined && (this.level === TraceLevel.Verbose || this.level === TraceLevel.Debug)) {
+            this.output.appendLine(`${this.timestamp} ${message || emptyStr}${this.toLoggableParams(true, params)}`);
         }
     }
 
     static warn(message: string, ...params: any[]): void;
     static warn(context: LogCorrelationContext | undefined, message: string, ...params: any[]): void;
-    static warn(callerOrMessage: LogCorrelationContext | string | undefined, ...params: any[]): void {
-        if (this.level === LogLevel.Silent && !Logger.isDebugging) return;
+    static warn(contextOrMessage: LogCorrelationContext | string | undefined, ...params: any[]): void {
+        if (this.level === TraceLevel.Silent && !Logger.isDebugging) return;
 
         let message;
-        if (typeof callerOrMessage === 'string') {
-            message = callerOrMessage;
+        if (typeof contextOrMessage === 'string') {
+            message = contextOrMessage;
         }
         else {
             message = params.shift();
 
-            if (callerOrMessage !== undefined) {
-                message = `${callerOrMessage.prefix} ${message || ''}`;
+            if (contextOrMessage !== undefined) {
+                message = `${contextOrMessage.prefix} ${message || emptyStr}`;
             }
         }
 
         if (Logger.isDebugging) {
-            console.warn(this.timestamp, ConsolePrefix, message || '', ...params);
+            console.warn(this.timestamp, ConsolePrefix, message || emptyStr, ...params);
         }
 
-        if (this.output !== undefined && this.level !== LogLevel.Silent) {
-            this.output.appendLine(`${this.timestamp} ${message || ''} ${this.toLoggableParams(false, params)}`);
+        if (this.output !== undefined && this.level !== TraceLevel.Silent) {
+            this.output.appendLine(`${this.timestamp} ${message || emptyStr}${this.toLoggableParams(false, params)}`);
         }
     }
 
@@ -199,17 +206,6 @@ export class Logger {
         if (this.output === undefined) return;
 
         this.output.show();
-    }
-
-    static toLoggableName(instance: Function | object) {
-        if (typeof instance === 'function') {
-            return instance.name;
-        }
-
-        const name = instance.constructor != null ? instance.constructor.name : '';
-        // Strip webpack module name (since I never name classes with an _)
-        const index = name.indexOf('_');
-        return index === -1 ? name : name.substr(index + 1);
     }
 
     static toLoggable(p: any, sanitize?: ((key: string, value: any) => any) | undefined) {
@@ -224,8 +220,26 @@ export class Logger {
             return JSON.stringify(p, sanitize);
         }
         catch {
-            return `<error>`;
+            return '<error>';
         }
+    }
+
+    static toLoggableName(instance: Function | object) {
+        let name;
+        if (typeof instance === 'function') {
+            if (instance.prototype == null || instance.prototype.constructor == null) {
+                return instance.name;
+            }
+
+            name = instance.prototype.constructor.name;
+        }
+        else {
+            name = instance.constructor != null ? instance.constructor.name : emptyStr;
+        }
+
+        // Strip webpack module name (since I never name classes with an _)
+        const index = name.indexOf('_');
+        return index === -1 ? name : name.substr(index + 1);
     }
 
     private static get timestamp(): string {
@@ -233,16 +247,16 @@ export class Logger {
         return `[${now
             .toISOString()
             .replace(/T/, ' ')
-            .replace(/\..+/, '')}:${('00' + now.getUTCMilliseconds()).slice(-3)}]`;
+            .replace(/\..+/, emptyStr)}:${`00${now.getUTCMilliseconds()}`.slice(-3)}]`;
     }
 
     private static toLoggableParams(debugOnly: boolean, params: any[]) {
-        if (params.length === 0 || (debugOnly && this.level !== LogLevel.Debug && !Logger.isDebugging)) {
-            return '';
+        if (params.length === 0 || (debugOnly && this.level !== TraceLevel.Debug && !Logger.isDebugging)) {
+            return emptyStr;
         }
 
         const loggableParams = params.map(p => this.toLoggable(p)).join(', ');
-        return loggableParams || '';
+        return loggableParams.length !== 0 ? ` \u2014 ${loggableParams}` : emptyStr;
     }
 
     private static _isDebugging: boolean | undefined;

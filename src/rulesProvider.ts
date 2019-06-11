@@ -76,10 +76,10 @@ export class RulesProvider implements Disposable {
             this._registeredRulesets = [];
         }
 
-        const ruleset = {
+        const ruleset: RegisteredRuleset = {
             name: name,
             rules: rules
-        } as RegisteredRuleset;
+        };
         this._registeredRulesets.push(ruleset);
 
         this.compileRules();

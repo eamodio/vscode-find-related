@@ -3,7 +3,7 @@ import { commands } from 'vscode';
 
 export const extensionId = 'findrelated';
 export const extensionOutputChannelName = 'FindRelated';
-export const extensionQualifiedId = `eamodio.find-related`;
+export const extensionQualifiedId = 'eamodio.find-related';
 
 export enum BuiltInCommands {
     Open = 'vscode.open',

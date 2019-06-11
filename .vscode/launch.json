@@ -11,8 +11,9 @@
             "env": {
                 "VSCODE_DEBUGGING_EXTENSION": "findrelated"
             },
+            "cwd": "${workspaceFolder}",
             "outFiles": ["${workspaceFolder}/dist/**/*.js"],
-            "skipFiles": ["<node_internals>/**", "**/node_modules/**", "**/app/out/vs/**", "**/extensions/**"],
+            "skipFiles": ["<node_internals>/**", "**/node_modules/**", "**/resources/app/out/vs/**"],
             "smartStep": true,
             "sourceMaps": true
         },
@@ -24,9 +25,10 @@
             "env": {
                 "VSCODE_DEBUGGING_EXTENSION": "findrelated"
             },
+            "cwd": "${workspaceFolder}",
             "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
             "outFiles": ["${workspaceFolder}/dist/**/*.js"],
-            "skipFiles": ["<node_internals>/**", "**/node_modules/**", "**/app/out/vs/**", "**/extensions/**"],
+            "skipFiles": ["<node_internals>/**", "**/node_modules/**", "**/resources/app/out/vs/**"],
             "smartStep": true,
             "sourceMaps": true,
             "preLaunchTask": "npm: watch"

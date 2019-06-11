@@ -1,7 +1,9 @@
 'use strict';
-import { LogCorrelationContext, Logger, LogLevel } from '../../logger';
-import { Functions } from './../function';
-import { Strings } from './../string';
+import { LogCorrelationContext, Logger, TraceLevel } from '../../logger';
+import { Functions } from '../function';
+import { Strings } from '../string';
+
+const emptyStr = '';
 
 const correlationContext = new Map<number, LogCorrelationContext>();
 let correlationCounter = 0;
@@ -15,6 +17,9 @@ export function getCorrelationId() {
 }
 
 function getNextCorrelationId() {
+    if (correlationCounter === Number.MAX_SAFE_INTEGER) {
+        correlationCounter = 0;
+    }
     return ++correlationCounter;
 }
 
@@ -27,11 +32,11 @@ function setCorrelationContext(correlationId: number, context: LogCorrelationCon
 }
 
 export interface LogContext<T> {
-    prefix: string;
-    name: string;
+    id: number;
     instance: T;
     instanceName: string;
-    id?: number;
+    name: string;
+    prefix: string;
 }
 
 export const LogInstanceNameFn = Symbol('logInstanceNameFn');
@@ -42,38 +47,43 @@ export function logName<T>(fn: (c: T, name: string) => string) {
     };
 }
 
-export function debug<T>(
+export function debug<T extends (...arg: any) => any>(
     options: {
-        args?: boolean | { [arg: string]: (arg: any) => string };
-        condition?(this: any, ...args: any[]): boolean;
+        args?: false | { [arg: string]: (arg: any) => string | false };
+        condition?(...args: Parameters<T>): boolean;
         correlate?: boolean;
-        enter?(this: any, ...args: any[]): string;
-        exit?(this: any, result: any): string;
-        prefix?(this: any, context: LogContext<T>, ...args: any[]): string;
-        sanitize?(this: any, key: string, value: any): any;
+        enter?(...args: Parameters<T>): string;
+        exit?(result: PromiseType<ReturnType<T>>): string;
+        prefix?(context: LogContext<T>, ...args: Parameters<T>): string;
+        sanitize?(key: string, value: any): any;
+        singleLine?: boolean;
         timed?: boolean;
-    } = { args: true, timed: true }
+    } = { timed: true }
 ) {
     return log<T>({ debug: true, ...options });
 }
 
-export function log<T>(
+type PromiseType<T> = T extends Promise<infer U> ? U : T;
+
+export function log<T extends (...arg: any) => any>(
     options: {
-        args?: boolean | { [arg: number]: (arg: any) => string };
-        condition?(this: any, ...args: any[]): boolean;
+        args?: false | { [arg: number]: (arg: any) => string | false };
+        condition?(...args: Parameters<T>): boolean;
         correlate?: boolean;
         debug?: boolean;
-        enter?(this: any, ...args: any[]): string;
-        exit?(this: any, result: any): string;
-        prefix?(this: any, context: LogContext<T>, ...args: any[]): string;
-        sanitize?(this: any, key: string, value: any): any;
+        enter?(...args: Parameters<T>): string;
+        exit?(result: PromiseType<ReturnType<T>>): string;
+        prefix?(context: LogContext<T>, ...args: Parameters<T>): string;
+        sanitize?(key: string, value: any): any;
         singleLine?: boolean;
         timed?: boolean;
-    } = { args: true, timed: true }
+    } = { timed: true }
 ) {
-    options = { args: true, timed: true, ...options };
+    options = { timed: true, ...options };
 
-    const logFn = options.debug ? Logger.debug.bind(Logger) : Logger.log.bind(Logger);
+    const logFn = (options.debug ? Logger.debug.bind(Logger) : Logger.log.bind(Logger)) as
+        | typeof Logger.debug
+        | typeof Logger.log;
 
     return (target: any, key: string, descriptor: PropertyDescriptor) => {
         let fn: Function | undefined;
@@ -87,9 +97,13 @@ export function log<T>(
 
         const parameters = Functions.getParameters(fn);
 
-        descriptor.value = function(this: any, ...args: any[]) {
+        descriptor.value = function(this: any, ...args: Parameters<T>) {
+            const correlationId = getNextCorrelationId();
+
             if (
-                (Logger.level !== LogLevel.Debug && !(Logger.level === LogLevel.Verbose && !options.debug)) ||
+                (!Logger.isDebugging &&
+                    Logger.level !== TraceLevel.Debug &&
+                    !(Logger.level === TraceLevel.Verbose && !options.debug)) ||
                 (typeof options.condition === 'function' && !options.condition(...args))
             ) {
                 return fn!.apply(this, args);
@@ -103,58 +117,67 @@ export function log<T>(
                 }
             }
             else {
-                instanceName = '';
+                instanceName = emptyStr;
             }
 
-            let correlationId: number | undefined;
-            let prefix: string;
-            if ((options.correlate || options.timed) && !options.singleLine) {
-                correlationId = getNextCorrelationId();
-                prefix = `[${correlationId.toString(16)}] ${instanceName ? `${instanceName}.` : ''}${key}`;
+            let { correlate } = options;
+            if (!correlate && options.timed) {
+                correlate = true;
             }
-            else {
-                prefix = `${instanceName ? `${instanceName}.` : ''}${key}`;
-            }
+
+            let prefix = `${correlate ? `[${correlationId.toString(16)}] ` : emptyStr}${
+                instanceName ? `${instanceName}.` : emptyStr
+            }${key}`;
 
             if (options.prefix != null) {
                 prefix = options.prefix(
                     {
-                        prefix: prefix,
+                        id: correlationId,
                         instance: this,
-                        name: key,
                         instanceName: instanceName,
-                        id: correlationId
-                    } as LogContext<T>,
+                        name: key,
+                        prefix: prefix
+                    },
                     ...args
                 );
             }
 
-            if (correlationId !== undefined) {
-                setCorrelationContext(correlationId, { correlationId: correlationId, prefix: prefix });
+            let correlationContext: LogCorrelationContext | undefined;
+            if (correlate) {
+                correlationContext = { correlationId: correlationId, prefix: prefix };
+                setCorrelationContext(correlationId, correlationContext);
             }
 
-            const enter = options.enter != null ? options.enter(...args) : '';
+            const enter = options.enter != null ? options.enter(...args) : emptyStr;
 
             let loggableParams: string;
-            if (!options.args || args.length === 0) {
-                loggableParams = '';
+            if (options.args === false || args.length === 0) {
+                loggableParams = emptyStr;
 
                 if (!options.singleLine) {
                     logFn(`${prefix}${enter}`);
                 }
             }
             else {
+                const argFns = typeof options.args === 'object' ? options.args : undefined;
+                let argFn;
+                let loggable;
                 loggableParams = args
                     .map((v: any, index: number) => {
                         const p = parameters[index];
 
-                        const loggable =
-                            typeof options.args === 'object' && options.args[index]
-                                ? options.args[index](v)
-                                : Logger.toLoggable(v, options.sanitize);
+                        argFn = argFns !== undefined ? argFns[index] : undefined;
+                        if (argFn !== undefined) {
+                            loggable = argFn(v);
+                            if (loggable === false) return undefined;
+                        }
+                        else {
+                            loggable = Logger.toLoggable(v, options.sanitize);
+                        }
 
                         return p ? `${p}=${loggable}` : loggable;
                     })
+                    .filter(Boolean)
                     .join(', ');
 
                 if (!options.singleLine) {
@@ -167,14 +190,37 @@ export function log<T>(
                 }
             }
 
-            if (options.timed || options.exit != null) {
+            if (options.singleLine || options.timed || options.exit != null) {
                 const start = options.timed ? process.hrtime() : undefined;
 
                 const logError = (ex: Error) => {
-                    const timing = start !== undefined ? ` \u2022 ${Strings.getDurationMilliseconds(start)} ms` : '';
-                    Logger.error(ex, prefix, `failed${timing}${options.singleLine ? `${enter}${loggableParams}` : ''}`);
+                    const timing =
+                        start !== undefined ? ` \u2022 ${Strings.getDurationMilliseconds(start)} ms` : emptyStr;
+                    if (options.singleLine) {
+                        Logger.error(
+                            ex,
+                            `${prefix}${enter}`,
+                            `failed${
+                                correlationContext !== undefined && correlationContext.exitDetails
+                                    ? correlationContext.exitDetails
+                                    : emptyStr
+                            }${timing}`,
+                            loggableParams
+                        );
+                    }
+                    else {
+                        Logger.error(
+                            ex,
+                            prefix,
+                            `failed${
+                                correlationContext !== undefined && correlationContext.exitDetails
+                                    ? correlationContext.exitDetails
+                                    : emptyStr
+                            }${timing}`
+                        );
+                    }
 
-                    if (correlationId !== undefined) {
+                    if (correlate) {
                         clearCorrelationContext(correlationId);
                     }
                 };
@@ -189,7 +235,8 @@ export function log<T>(
                 }
 
                 const logResult = (r: any) => {
-                    const timing = start !== undefined ? ` \u2022 ${Strings.getDurationMilliseconds(start)} ms` : '';
+                    const timing =
+                        start !== undefined ? ` \u2022 ${Strings.getDurationMilliseconds(start)} ms` : emptyStr;
                     let exit;
                     if (options.exit != null) {
                         try {
@@ -205,17 +252,37 @@ export function log<T>(
 
                     if (options.singleLine) {
                         if (!options.debug) {
-                            Logger.logWithDebugParams(`${prefix} ${enter}${exit}${timing}`, loggableParams);
+                            Logger.logWithDebugParams(
+                                `${prefix}${enter} ${exit}${
+                                    correlationContext !== undefined && correlationContext.exitDetails
+                                        ? correlationContext.exitDetails
+                                        : emptyStr
+                                }${timing}`,
+                                loggableParams
+                            );
                         }
                         else {
-                            logFn(prefix, `${enter}${exit}${timing}`, loggableParams);
+                            logFn(
+                                `${prefix}${enter} ${exit}${
+                                    correlationContext !== undefined && correlationContext.exitDetails
+                                        ? correlationContext.exitDetails
+                                        : emptyStr
+                                }${timing}`,
+                                loggableParams
+                            );
                         }
                     }
                     else {
-                        logFn(prefix, `${exit}${timing}`);
+                        logFn(
+                            `${prefix} ${exit}${
+                                correlationContext !== undefined && correlationContext.exitDetails
+                                    ? correlationContext.exitDetails
+                                    : emptyStr
+                            }${timing}`
+                        );
                     }
 
-                    if (correlationId !== undefined) {
+                    if (correlate) {
                         clearCorrelationContext(correlationId);
                     }
                 };

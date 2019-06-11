@@ -1,8 +1,7 @@
 'use strict';
-import { CancellationTokenSource, commands, Disposable, QuickPickItem, QuickPickOptions, window } from 'vscode';
+import { CancellationTokenSource, commands, Disposable, QuickPickItem, window } from 'vscode';
 import { Container } from '../container';
 import { KeyMapping, Keys } from '../keyboard';
-// import { Logger } from '../logger';
 
 export function showQuickPickProgress(
     message: string,
@@ -12,6 +11,7 @@ export function showQuickPickProgress(
     const cancellation = new CancellationTokenSource();
 
     if (delay) {
+        // eslint-disable-next-line prefer-const
         let disposable: Disposable;
         const timer = setTimeout(() => {
             disposable && disposable.dispose();
@@ -34,7 +34,7 @@ async function _showQuickPickProgress(message: string, cancellation: Cancellatio
             _getInfiniteCancellablePromise(cancellation),
             {
                 placeHolder: message
-            } as QuickPickOptions,
+            },
             cancellation.token
         );
     }

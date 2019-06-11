@@ -12,14 +12,19 @@ import {
 } from 'vscode';
 import { Config } from './config';
 import { extensionId } from './constants';
-import { Container } from './container';
 import { Functions } from './system';
 
-const emptyConfig: any = new Proxy<any>({} as Config, {
-    get(target, propKey, receiver) {
+// eslint-disable-next-line @typescript-eslint/no-object-literal-type-assertion
+const emptyConfig: Config = new Proxy<Config>({} as Config, {
+    get: function() {
         return emptyConfig;
     }
 });
+
+export interface ConfigurationWillChangeEvent {
+    change: ConfigurationChangeEvent;
+    transform?(e: ConfigurationChangeEvent): ConfigurationChangeEvent;
+}
 
 export class Configuration {
     static configure(context: ExtensionContext) {
@@ -33,10 +38,31 @@ export class Configuration {
         return this._onDidChange.event;
     }
 
-    private onConfigurationChanged(e: ConfigurationChangeEvent) {
-        if (!e.affectsConfiguration(extensionId, null!)) return;
+    private _onDidChangeAny = new EventEmitter<ConfigurationChangeEvent>();
+    get onDidChangeAny(): Event<ConfigurationChangeEvent> {
+        return this._onDidChange.event;
+    }
 
-        Container.resetConfig();
+    private _onWillChange = new EventEmitter<ConfigurationWillChangeEvent>();
+    get onWillChange(): Event<ConfigurationWillChangeEvent> {
+        return this._onWillChange.event;
+    }
+
+    private onConfigurationChanged(e: ConfigurationChangeEvent) {
+        if (!e.affectsConfiguration(extensionId, null!)) {
+            this._onDidChangeAny.fire(e);
+
+            return;
+        }
+
+        const evt: ConfigurationWillChangeEvent = {
+            change: e
+        };
+        this._onWillChange.fire(evt);
+
+        if (evt.transform !== undefined) {
+            e = evt.transform(e);
+        }
 
         this._onDidChange.fire(e);
     }
@@ -55,6 +81,12 @@ export class Configuration {
                   .get<T>(section === undefined ? extensionId : section, defaultValue)!;
     }
 
+    getAny<T>(section: string, resource?: Uri | null, defaultValue?: T) {
+        return defaultValue === undefined
+            ? workspace.getConfiguration(undefined, resource!).get<T>(section)!
+            : workspace.getConfiguration(undefined, resource!).get<T>(section, defaultValue)!;
+    }
+
     changed(e: ConfigurationChangeEvent, section: string, resource?: Uri | null) {
         return e.affectsConfiguration(`${extensionId}.${section}`, resource!);
     }
@@ -67,6 +99,10 @@ export class Configuration {
         return workspace
             .getConfiguration(section === undefined ? undefined : extensionId, resource!)
             .inspect(section === undefined ? extensionId : section);
+    }
+
+    inspectAny(section: string, resource?: Uri | null) {
+        return workspace.getConfiguration(undefined, resource!).inspect(section);
     }
 
     async migrate<TFrom, TTo>(
@@ -211,25 +247,31 @@ export class Configuration {
             .update(section, value, target);
     }
 
+    updateAny(section: string, value: any, target: ConfigurationTarget, resource?: Uri | null) {
+        return workspace
+            .getConfiguration(undefined, target === ConfigurationTarget.Global ? undefined : resource!)
+            .update(section, value, target);
+    }
+
     async updateEffective(section: string, value: any, resource: Uri | null = null) {
         const inspect = await configuration.inspect(section, resource)!;
         if (inspect.workspaceFolderValue !== undefined) {
-            if (value === inspect.workspaceFolderValue) return;
+            if (value === inspect.workspaceFolderValue) return undefined;
 
-            return await configuration.update(section, value, ConfigurationTarget.WorkspaceFolder, resource);
+            return void configuration.update(section, value, ConfigurationTarget.WorkspaceFolder, resource);
         }
 
         if (inspect.workspaceValue !== undefined) {
-            if (value === inspect.workspaceValue) return;
+            if (value === inspect.workspaceValue) return undefined;
 
-            return await configuration.update(section, value, ConfigurationTarget.Workspace);
+            return void configuration.update(section, value, ConfigurationTarget.Workspace);
         }
 
         if (inspect.globalValue === value || (inspect.globalValue === undefined && value === inspect.defaultValue)) {
-            return;
+            return undefined;
         }
 
-        return await configuration.update(
+        return void configuration.update(
             section,
             value === inspect.defaultValue ? undefined : value,
             ConfigurationTarget.Global

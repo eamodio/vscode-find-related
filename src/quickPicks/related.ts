@@ -1,14 +1,6 @@
 'use strict';
 import * as path from 'path';
-import {
-    CancellationTokenSource,
-    QuickPickOptions,
-    TextDocumentShowOptions,
-    TextEditor,
-    Uri,
-    window,
-    workspace
-} from 'vscode';
+import { CancellationTokenSource, TextDocumentShowOptions, TextEditor, Uri, window, workspace } from 'vscode';
 import { openEditor } from '../commands';
 import { Container } from '../container';
 import { Keys } from '../keyboard';
@@ -47,9 +39,7 @@ export class RelatedFileQuickPickItem extends CommandQuickPickItem {
             preview: false
         });
     }
-    async execute(
-        options: TextDocumentShowOptions & { openSideBySide?: boolean } = {}
-    ): Promise<TextEditor | undefined> {
+    execute(options: TextDocumentShowOptions & { openSideBySide?: boolean } = {}): Promise<TextEditor | undefined> {
         if (options.openSideBySide === undefined) {
             options.openSideBySide = Container.config.openSideBySide;
         }
@@ -88,7 +78,7 @@ export class RelatedQuickPick {
                     item.onDidSelect();
                 }
             }
-        } as QuickPickOptions);
+        });
 
         await scope.dispose();
 

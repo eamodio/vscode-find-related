@@ -12,6 +12,7 @@ export interface DynamicRule {
     provideRelated(fileName: string, document: TextDocument, rootPath: string): Promise<Uri[]>;
 }
 
+// eslint-disable-next-line @typescript-eslint/interface-name-prefix
 export interface IRule {
     match(fileName: string): boolean;
     provideRelated(fileName: string, document: TextDocument, rootPath: string): Iterable<Promise<Uri[]>>;
@@ -24,10 +25,7 @@ export class Rule implements IRule, RuleDefinition {
 
     private _match: RegExpExecArray | null | undefined;
 
-    constructor(
-        rule: RuleDefinition,
-        private rulesetName: string
-    ) {
+    constructor(rule: RuleDefinition, private rulesetName: string) {
         Object.assign(this, rule);
         try {
             this.matcher = new RegExp(rule.pattern, 'i');
@@ -69,7 +67,7 @@ export class Rule implements IRule, RuleDefinition {
     }
 
     private static replaceTokens(pattern: string, ruleMatch: RegExpExecArray): string {
-        return pattern.replace(tokenReplacer, (match: string, p1: string, p2: string) => ruleMatch[+p2]);
+        return pattern.replace(tokenReplacer, (match: string, p1: string, p2: string) => ruleMatch[Number(p2)]);
     }
 
     // private static async globAsync(pattern: string, options?: glob.IOptions): Promise<Uri[]> {

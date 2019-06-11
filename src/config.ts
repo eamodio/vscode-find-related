@@ -1,13 +1,5 @@
-import { TextDocument, Uri } from 'vscode';
-
 'use strict';
-
-export enum LogLevel {
-    Silent = 'silent',
-    Errors = 'errors',
-    Verbose = 'verbose',
-    Debug = 'debug'
-}
+import { TraceLevel } from './logger';
 
 export interface RuleDefinition {
     pattern: string;
@@ -24,11 +16,10 @@ export interface Config {
     applyWorkspaceRulesets: string[];
     autoOpen: boolean;
     autoPreview: boolean;
-    debug: boolean;
     ignoreExcludes: boolean;
     openPreview: boolean;
     openSideBySide: boolean;
-    outputLevel: LogLevel;
+    outputLevel: TraceLevel;
     rulesets: Ruleset[];
     workspaceRulesets: Ruleset[];
 }
