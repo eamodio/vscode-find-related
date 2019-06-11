@@ -145,7 +145,8 @@
                         "aurelia",
                         "c/c++",
                         "csharp",
-                        "minified"
+                        "minified",
+                        "xaml"
                     ],
                     "items": {
                         "type": "string",

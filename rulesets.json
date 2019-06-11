@@ -72,5 +72,18 @@
                 "locators": ["$1.html"]
             }
         ]
+    },
+    {
+        "name": "xaml",
+        "rules": [
+            {
+                "pattern": "(.*)\\.xaml$",
+                "locators": ["$1.xaml.cs"]
+            },
+            {
+                "pattern": "(.*)\\.xaml\\.cs$",
+                "locators": ["$1.xaml"]
+            }
+        ]
     }
 ]
