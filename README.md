@@ -17,6 +17,7 @@ Basic support for the following languages/frameworks is [built-in](#built-in-rul
 - asp.net mvc
 - aurelia
 - xaml
+- delphi
 
 Please open new [Github issues](https://github.com/eamodio/vscode-find-related/issues) with any rules you'd like included in the built-in ruleset.
 
@@ -114,6 +115,27 @@ Please open new [Github issues](https://github.com/eamodio/vscode-find-related/i
             {
                 "pattern": "(.*)\\.xaml\\.cs$",
                 "locators": ["$1.xaml"]
+            }
+        ]
+    },
+    {
+        "name": "delphi",
+        "rules": [
+            {
+                "pattern": "(.*)\\.(?:dfm)$",
+                "locators": [ "$1.pas" ]
+            },
+            {
+                "pattern": "(.*)\\.pas$",
+                "locators": [ "{$1.dfm}" ]
+            },
+            {
+                "pattern": "(.*)\\.dproj$",
+                "locators": [ "{$1.dpk,$1.dpr}" ]
+            },
+            {
+                "pattern": "(.*)\\.(?:dpk|dpr)$",
+                "locators": [ "$1.dproj" ]
             }
         ]
     }
