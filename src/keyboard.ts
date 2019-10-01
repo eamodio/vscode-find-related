@@ -1,37 +1,26 @@
 'use strict';
 import { commands, Disposable } from 'vscode';
-import { CommandContext, ExtensionKey, setCommandContext } from './constants';
+import { CommandContext, extensionId, setCommandContext } from './constants';
 import { Logger } from './logger';
 
 export declare interface KeyCommand {
-    onDidPressKey?(key: Keys): Promise<{} | undefined>;
+    onDidPressKey?(key: Keys): Thenable<{} | undefined>;
 }
 
 const keyNoopCommand = Object.create(null) as KeyCommand;
 export { keyNoopCommand as KeyNoopCommand };
 
 export declare type Keys = 'left' | 'right' | ',' | '.' | 'escape';
-export const keys: Keys[] = [
-    'left',
-    'right',
-    ',',
-    '.',
-    'escape'
-];
+export const keys: Keys[] = ['left', 'right', ',', '.', 'escape'];
 
 export declare interface KeyMapping {
-    [id: string]: (KeyCommand | (() => Promise<KeyCommand>) | undefined);
+    [id: string]: KeyCommand | (() => Thenable<KeyCommand>) | undefined;
 }
 
 const mappings: KeyMapping[] = [];
 
-let _instance: Keyboard;
-
-export class KeyboardScope extends Disposable {
-
-    constructor(private mapping: KeyMapping) {
-        super(() => this.dispose());
-
+export class KeyboardScope implements Disposable {
+    constructor(private readonly mapping: KeyMapping) {
         for (const key in mapping) {
             mapping[key] = mapping[key] || keyNoopCommand;
         }
@@ -40,7 +29,7 @@ export class KeyboardScope extends Disposable {
     async dispose() {
         const index = mappings.indexOf(this.mapping);
         Logger.log('KeyboardScope.dispose', mappings.length, index);
-        if (index === (mappings.length - 1)) {
+        if (index === mappings.length - 1) {
             mappings.pop();
             await this.updateKeyCommandsContext(mappings[mappings.length - 1]);
         }
@@ -68,7 +57,7 @@ export class KeyboardScope extends Disposable {
         const mapping = mappings[mappings.length - 1];
         if (mapping !== this.mapping) return;
 
-        Logger.log('KeyboardScope.setKeyCommand', mappings.length, key, !!mapping[key]);
+        Logger.log('KeyboardScope.setKeyCommand', mappings.length, key, Boolean(mapping[key]));
 
         if (!mapping[key]) {
             mapping[key] = command;
@@ -82,36 +71,29 @@ export class KeyboardScope extends Disposable {
     private async updateKeyCommandsContext(mapping: KeyMapping) {
         const promises = [];
         for (const key of keys) {
-            promises.push(setCommandContext(`${CommandContext.Key}:${key}`, !!(mapping && mapping[key])));
+            promises.push(setCommandContext(`${CommandContext.Key}:${key}`, Boolean(mapping && mapping[key])));
         }
         await Promise.all(promises);
     }
 }
 
-export class Keyboard extends Disposable {
-
-    static get instance(): Keyboard {
-        return _instance;
-    }
-
+export class Keyboard implements Disposable {
     private _disposable: Disposable;
 
     constructor() {
-        super(() => this.dispose());
-
-        const subscriptions = keys.map(key => commands.registerCommand(`${ExtensionKey}.key.${key}`, () => this.execute(key), this));
+        const subscriptions = keys.map(key =>
+            commands.registerCommand(`${extensionId}.key.${key}`, () => this.execute(key), this)
+        );
         this._disposable = Disposable.from(...subscriptions);
-
-        _instance = this;
     }
 
     dispose() {
         this._disposable && this._disposable.dispose();
     }
 
-    async beginScope(mapping?: KeyMapping): Promise<KeyboardScope> {
+    beginScope(mapping?: KeyMapping): Promise<KeyboardScope> {
         Logger.log('Keyboard.beginScope', mappings.length);
-        return await new KeyboardScope(mapping ? Object.assign(Object.create(null), mapping) : Object.create(null)).begin();
+        return new KeyboardScope(mapping ? Object.assign(Object.create(null), mapping) : Object.create(null)).begin();
     }
 
     async execute(key: Keys): Promise<{} | undefined> {

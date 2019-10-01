@@ -1,40 +1,14 @@
 {
     "name": "find-related",
-    "version": "0.7.0",
+    "displayName": "Find Related Files",
+    "description": "Finds files related to the current file based on user-defined configuration rules",
+    "version": "0.8.1",
     "author": {
         "name": "Eric Amodio",
         "email": "eamodio@gmail.com"
     },
     "publisher": "eamodio",
-    "engines": {
-        "vscode": "^1.22.0"
-    },
     "license": "SEE LICENSE IN LICENSE",
-    "displayName": "Find Related Files",
-    "description": "Finds files related to the current file based on user-defined configuration rules",
-    "badges": [
-        {
-            "url": "https://img.shields.io/badge/chat-on%20slack-brightgreen.svg",
-            "href": "https://join.slack.com/t/vscode-dev-community/shared_invite/enQtMjIxOTgxNDE3NzM0LWU5M2ZiZDU1YjBlMzdlZjA2YjBjYzRhYTM5NTgzMTAxMjdiNWU0ZmQzYWI3MWU5N2Q1YjBiYmQ4MzY0NDE1MzY",
-            "description": "Join us in the #find-related-files channel"
-        }
-    ],
-    "categories": [
-        "Other"
-    ],
-    "keywords": [
-        "find",
-        "related",
-        "files",
-        "open",
-        "similar"
-    ],
-    "galleryBanner": {
-        "color": "#56098c",
-        "theme": "dark"
-    },
-    "icon": "images/icon.png",
-    "preview": false,
     "homepage": "https://github.com/eamodio/vscode-find-related/blob/master/README.md",
     "bugs": {
         "url": "https://github.com/eamodio/vscode-find-related/issues"
@@ -43,11 +17,40 @@
         "type": "git",
         "url": "https://github.com/eamodio/vscode-find-related.git"
     },
-    "main": "./out/src/extension",
+    "engines": {
+        "vscode": "^1.28.0"
+    },
+    "main": "./dist/extension",
+    "icon": "images/icon.png",
+    "preview": false,
+    "badges": [
+        {
+            "url": "https://img.shields.io/badge/vscode--dev--community-find--related--files-blue.svg?logo=slack&labelColor=555555",
+            "href": "https://vscode-slack.amod.io",
+            "description": "Join us in the #find-related-files channel"
+        }
+    ],
+    "categories": [
+        "Other"
+    ],
+    "galleryBanner": {
+        "color": "#56098c",
+        "theme": "dark"
+    },
+    "keywords": [
+        "find",
+        "related",
+        "files",
+        "open",
+        "similar"
+    ],
+    "activationEvents": [
+        "onCommand:findrelated.show"
+    ],
     "contributes": {
         "configuration": {
             "type": "object",
-            "title": "Find Related Files configuration",
+            "title": "Find Related Files",
             "properties": {
                 "findrelated.rulesets": {
                     "type": "array",
@@ -145,7 +148,8 @@
                         "aurelia",
                         "c/c++",
                         "csharp",
-                        "minified"
+                        "minified",
+                        "xaml"
                     ],
                     "items": {
                         "type": "string",
@@ -167,6 +171,11 @@
                     "default": false,
                     "description": "Specifies whether to automatically open the related file if there is only 1 result"
                 },
+                "findrelated.openSideBySide": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Specifies whether to open the related file to the side"
+                },
                 "findrelated.autoPreview": {
                     "type": "boolean",
                     "default": true,
@@ -181,11 +190,6 @@
                     "type": "boolean",
                     "default": true,
                     "description": "Specifies whether to open the related file in a preview tab"
-                },
-                "findrelated.debug": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Specifies debug mode"
                 },
                 "findrelated.outputLevel": {
                     "type": "string",
@@ -219,30 +223,44 @@
             }
         ]
     },
-    "activationEvents": [
-        "onCommand:findrelated.show"
-    ],
     "scripts": {
-        "build": "npm run lint && tsc -p ./",
-        "clean": "git clean -Xdf",
-        "lint": "tslint --project tsconfig.json",
+        "build": "webpack --env.development",
+        "bundle": "webpack --env.production",
+        "clean": "git clean -Xdf -e !node_modules -e !node_modules/**/*",
+        "lint": "eslint src/**/*.ts --fix",
         "pack": "vsce package",
+        "pretty": "prettier --config .prettierrc --loglevel warn --write \"./**/*.{ts,md,json}\" && npm run lint",
         "pub": "vsce publish",
+        "rebuild": "npm run reset && npm run build",
         "reset": "npm run clean && npm install --no-save",
-        "watch": "tsc -watch -p ./",
+        "watch": "webpack --watch --env.development --info-verbosity verbose",
         "postinstall": "node ./node_modules/vscode/bin/install",
-        "prepush": "npm run build",
-        "vscode:prepublish": "npm run reset && npm run build"
+        "vscode:prepublish": "npm run reset && npm run bundle"
     },
     "dependencies": {
-        "lodash.union": "4.6.0"
+        "lodash-es": "4.17.11"
     },
     "devDependencies": {
-        "@types/lodash.union": "4.6.3",
-        "@types/node": "9.6.6",
-        "husky": "0.14.3",
-        "tslint": "5.9.1",
-        "typescript": "2.8.3",
-        "vscode": "1.1.14"
+        "@types/lodash-es": "4.17.3",
+        "@types/node": "10.1.4",
+        "@typescript-eslint/eslint-plugin": "1.10.2",
+        "@typescript-eslint/parser": "1.10.2",
+        "clean-webpack-plugin": "3.0.0",
+        "circular-dependency-plugin": "5.0.2",
+        "eslint": "5.16.0",
+        "eslint-cli": "1.1.1",
+        "eslint-config-prettier": "4.3.0",
+        "eslint-loader": "2.1.2",
+        "eslint-plugin-import": "2.17.3",
+        "eslint-plugin-prettiest": "0.0.1",
+        "prettier": "1.18.2",
+        "prettier-eslint": "8.8.2",
+        "ts-loader": "6.0.2",
+        "typescript": "3.5.1",
+        "vsce": "1.62.0",
+        "vscode": "1.1.34",
+        "webpack": "4.33.0",
+        "webpack-cli": "3.3.3",
+        "webpack-bundle-analyzer": "3.3.2"
     }
 }

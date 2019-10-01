@@ -1,22 +1,25 @@
 'use strict';
-import { IRuleset } from './rulesProvider';
+import { TraceLevel } from './logger';
 
-export enum OutputLevel {
-    Silent = 'silent',
-    Errors = 'errors',
-    Verbose = 'verbose',
-    Debug = 'debug'
+export interface RuleDefinition {
+    pattern: string;
+    locators: string[];
 }
 
-export interface IConfig {
+export interface Ruleset {
+    name: string;
+    rules: RuleDefinition[];
+}
+
+export interface Config {
     applyRulesets: string[];
     applyWorkspaceRulesets: string[];
     autoOpen: boolean;
     autoPreview: boolean;
-    debug: boolean;
     ignoreExcludes: boolean;
     openPreview: boolean;
-    outputLevel: OutputLevel;
-    rulesets: IRuleset[];
-    workspaceRulesets: IRuleset[];
+    openSideBySide: boolean;
+    outputLevel: TraceLevel;
+    rulesets: Ruleset[];
+    workspaceRulesets: Ruleset[];
 }

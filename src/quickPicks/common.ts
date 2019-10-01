@@ -1,44 +1,50 @@
 'use strict';
-import { CancellationTokenSource, commands, Disposable, QuickPickItem, QuickPickOptions, TextDocumentShowOptions, TextEditor, Uri, window } from 'vscode';
-import { openEditor } from '../commands';
-import { configuration } from '../configuration';
-import { Keyboard, KeyMapping, Keys } from '../keyboard';
+import { CancellationTokenSource, commands, Disposable, QuickPickItem, window } from 'vscode';
+import { Container } from '../container';
+import { KeyMapping, Keys } from '../keyboard';
 
-// import { Logger } from '../logger';
-
-export function showQuickPickProgress(message: string, mapping?: KeyMapping, delay: boolean = false): CancellationTokenSource {
+export function showQuickPickProgress(
+    message: string,
+    mapping?: KeyMapping,
+    delay: boolean = false
+): CancellationTokenSource {
     const cancellation = new CancellationTokenSource();
 
     if (delay) {
+        // eslint-disable-next-line prefer-const
         let disposable: Disposable;
         const timer = setTimeout(() => {
             disposable && disposable.dispose();
-            _showQuickPickProgress(message, cancellation, mapping);
+            void _showQuickPickProgress(message, cancellation, mapping);
         }, 250);
         disposable = cancellation.token.onCancellationRequested(() => clearTimeout(timer));
     }
     else {
-        _showQuickPickProgress(message, cancellation, mapping);
+        void _showQuickPickProgress(message, cancellation, mapping);
     }
 
     return cancellation;
 }
 
 async function _showQuickPickProgress(message: string, cancellation: CancellationTokenSource, mapping?: KeyMapping) {
-        const scope = mapping && await Keyboard.instance.beginScope(mapping);
+    const scope = mapping && (await Container.keyboard.beginScope(mapping));
 
-        try {
-            await window.showQuickPick(_getInfiniteCancellablePromise(cancellation), {
+    try {
+        await window.showQuickPick(
+            _getInfiniteCancellablePromise(cancellation),
+            {
                 placeHolder: message
-            } as QuickPickOptions, cancellation.token);
-        }
-        catch (ex) {
-            // Not sure why this throws
-        }
-        finally {
-            cancellation.cancel();
-            scope && scope.dispose();
-        }
+            },
+            cancellation.token
+        );
+    }
+    catch (ex) {
+        // Not sure why this throws
+    }
+    finally {
+        cancellation.cancel();
+        scope && scope.dispose();
+    }
 }
 
 function _getInfiniteCancellablePromise(cancellation: CancellationTokenSource) {
@@ -56,7 +62,6 @@ export interface QuickPickItem extends QuickPickItem {
 }
 
 export class CommandQuickPickItem implements QuickPickItem {
-
     label!: string;
     description!: string;
     detail?: string | undefined;
@@ -89,53 +94,5 @@ export class CommandQuickPickItem implements QuickPickItem {
 
     onDidPressKey(key: Keys): Promise<{} | undefined> {
         return this.execute();
-    }
-}
-
-export class OpenFileCommandQuickPickItem extends CommandQuickPickItem {
-
-    constructor(public uri: Uri, item: QuickPickItem) {
-        super(item, undefined, undefined);
-    }
-
-    async execute(options?: TextDocumentShowOptions): Promise<TextEditor | undefined> {
-        return openEditor(this.uri, options);
-    }
-
-    onDidSelect(): Promise<{} | undefined> {
-        if (!configuration.get<boolean>(configuration.name('autoPreview').value)) return Promise.resolve(undefined);
-
-        return this.execute({
-            preserveFocus: true,
-            preview: true
-        });
-    }
-
-    onDidPressKey(key: Keys): Promise<{} | undefined> {
-        return this.execute({
-            preserveFocus: true,
-            preview: false
-        });
-    }
-}
-
-export class OpenFilesCommandQuickPickItem extends CommandQuickPickItem {
-
-    constructor(public uris: Uri[], item: QuickPickItem) {
-        super(item, undefined, undefined);
-    }
-
-    async execute(options: TextDocumentShowOptions = { preserveFocus: false, preview: false }): Promise<{} | undefined> {
-        for (const uri of this.uris) {
-            await openEditor(uri, options);
-        }
-        return undefined;
-    }
-
-    async onDidPressKey(key: Keys): Promise<{} | undefined> {
-        return this.execute({
-            preserveFocus: true,
-            preview: false
-        });
     }
 }

@@ -1,7 +1,7 @@
-[![](https://vsmarketplacebadge.apphb.com/version/eamodio.find-related.svg)](https://marketplace.visualstudio.com/items?itemName=eamodio.find-related)
-[![](https://vsmarketplacebadge.apphb.com/installs/eamodio.find-related.svg)](https://marketplace.visualstudio.com/items?itemName=eamodio.find-related)
-[![](https://vsmarketplacebadge.apphb.com/rating/eamodio.find-related.svg)](https://marketplace.visualstudio.com/items?itemName=eamodio.find-related)
-[![Chat at https://vscode-dev-community.slack.com/](https://raw.githubusercontent.com/eamodio/vscode-gitlens/master/images/chat-badge.png)](https://join.slack.com/t/vscode-dev-community/shared_invite/enQtMjIxOTgxNDE3NzM0LWU5M2ZiZDU1YjBlMzdlZjA2YjBjYzRhYTM5NTgzMTAxMjdiNWU0ZmQzYWI3MWU5N2Q1YjBiYmQ4MzY0NDE1MzY)
+[![](https://vsmarketplacebadge.apphb.com/version-short/eamodio.find-related.svg)](https://marketplace.visualstudio.com/items?itemName=eamodio.find-related)
+[![](https://vsmarketplacebadge.apphb.com/downloads-short/eamodio.find-related.svg)](https://marketplace.visualstudio.com/items?itemName=eamodio.find-related)
+[![](https://vsmarketplacebadge.apphb.com/rating-short/eamodio.find-related.svg)](https://marketplace.visualstudio.com/items?itemName=eamodio.find-related)
+[![](https://img.shields.io/badge/vscode--dev--community-find--related--files-blue.svg?logo=slack&labelColor=555555)](https://vscode-slack.amod.io)
 
 # Find Related Files
 
@@ -10,10 +10,13 @@ Finds files related to the current file based on user-defined configuration rule
 - Adds a `Show Related Files` command (`findrelated.show`) with a shortcut of `alt+r` to show a quick pick menu of files related to the active file
 
 Basic support for the following languages/frameworks is [built-in](#built-in-rulesets):
+
+- minified files
 - c, c++, c#
 - asp.net
 - asp.net mvc
 - aurelia
+- xaml
 
 Please open new [Github issues](https://github.com/eamodio/vscode-find-related/issues) with any rules you'd like included in the built-in ruleset.
 
@@ -21,9 +24,21 @@ Please open new [Github issues](https://github.com/eamodio/vscode-find-related/i
 
 ![FindRelated screenshot](https://raw.githubusercontent.com/eamodio/vscode-find-related/master/images/screenshot.png)
 
+---
+
 ## Built-in rulesets
+
 ```
 [
+    {
+        "name": "minified",
+        "rules": [
+            {
+                "pattern": "(.*?)(\\.min)?\\.(js|css)(?:\\.map)?$",
+                "locators": ["{$1.$3,$1.min.$3,$1.$3.map,$1.min.$3.map}"]
+            }
+        ]
+    },
     {
         "name": "c/c++",
         "rules": [
@@ -67,7 +82,7 @@ Please open new [Github issues](https://github.com/eamodio/vscode-find-related/i
         "name": "aspnet-mvc",
         "rules": [
             {
-                "pattern": "(.*)\/views\/(.*?)(?:\/.*)?\\.cshtml$",
+                "pattern": "(.*)/views/(.*?)(?:/.*)?\\.cshtml$",
                 "locators": ["$1/**/Controllers/**/$2Controller.cs"]
             },
             {
@@ -88,6 +103,19 @@ Please open new [Github issues](https://github.com/eamodio/vscode-find-related/i
                 "locators": ["$1.html"]
             }
         ]
+    },
+    {
+        "name": "xaml",
+        "rules": [
+            {
+                "pattern": "(.*)\\.xaml$",
+                "locators": ["$1.xaml.cs"]
+            },
+            {
+                "pattern": "(.*)\\.xaml\\.cs$",
+                "locators": ["$1.xaml"]
+            }
+        ]
     }
 ]
 ```
@@ -95,18 +123,24 @@ Please open new [Github issues](https://github.com/eamodio/vscode-find-related/i
 `pattern` - specifies a regex pattern to which this rule applies; Capture groups can be used as replacements in the `locators`
 `locators` - specifies the list of glob pattern locators that will be used to search for related files; `$[0-9]` can be use as replacement tokens from the capture groups in the `pattern`
 
+---
+
 ## Extension Settings
 
-|Name | Description
-|-----|------------
-|`findrelated.rulesets`|Defines rulesets that can be used find related files; Will be merged with `findrelated.workspaceRulesets` and built-in rulesets
-|`findrelated.workspaceRulesets`|Defines workspace-specific rulesets that can be used find related files; Will be merged with `findrelated.rulesets` and built-in rulesets
-|`findrelated.applyRulesets`|Specifies the rulesets to use to find related files
-|`findrelated.applyWorkspaceRules`|Specifies the workspace-specific rulesets to use to find related files
-|`findrelated.autoOpen`|Specifies whether to automatically open the related file if there is only 1 result
-|`findrelated.autoPreview`|Specifies whether to automatically preview related files upon selection
-|`findrelated.ignoreExcludes`|Specifies whether to ignore file excludes when searching for related files
-|`findrelated.openPreview`|Specifies whether or not to open the related file in a preview tab
+| Name                              | Description                                                                                                                               |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `findrelated.rulesets`            | Defines rulesets that can be used find related files; Will be merged with `findrelated.workspaceRulesets` and built-in rulesets           |
+| `findrelated.workspaceRulesets`   | Defines workspace-specific rulesets that can be used find related files; Will be merged with `findrelated.rulesets` and built-in rulesets |
+| `findrelated.applyRulesets`       | Specifies the rulesets to use to find related files                                                                                       |
+| `findrelated.applyWorkspaceRules` | Specifies the workspace-specific rulesets to use to find related files                                                                    |
+| `findrelated.autoOpen`            | Specifies whether to automatically open the related file if there is only 1 result                                                        |
+| `findrelated.autoPreview`         | Specifies whether to automatically preview related files upon selection                                                                   |
+| `findrelated.ignoreExcludes`      | Specifies whether to ignore file excludes when searching for related files                                                                |
+| `findrelated.openPreview`         | Specifies whether or not to open the related file in a preview tab                                                                        |
+| `findrelated.openSideBySide`      | Specifies whether to open the related file to the side                                                                                    |
+| `findrelated.outputLevel`         | Specifies how much (if any) output will be sent to the FindRelated output channel                                                         |
+
+---
 
 ## Extension API
 
@@ -139,6 +173,10 @@ subscription1.dispose();
 subscription2.dispose();
 ```
 
-## Known Issues
+---
 
-None
+## Contributors &#x1F64F;&#x2764;
+
+A big thanks to the people that have contributed to this project:
+
+- Alessandro Fragnani ([@alefragnani](https://github.com/alefragnani)) &mdash; [contributions](https://github.com/eamodio/vscode-find-related/commits?author=alefragnani)

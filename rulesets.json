@@ -51,7 +51,7 @@
         "name": "aspnet-mvc",
         "rules": [
             {
-                "pattern": "(.*)\/views\/(.*?)(?:\/.*)?\\.cshtml$",
+                "pattern": "(.*)/views/(.*?)(?:/.*)?\\.cshtml$",
                 "locators": ["$1/**/Controllers/**/$2Controller.cs"]
             },
             {
@@ -70,6 +70,19 @@
             {
                 "pattern": "(.*)\\.(?:ts|js)$",
                 "locators": ["$1.html"]
+            }
+        ]
+    },
+    {
+        "name": "xaml",
+        "rules": [
+            {
+                "pattern": "(.*)\\.xaml$",
+                "locators": ["$1.xaml.cs"]
+            },
+            {
+                "pattern": "(.*)\\.xaml\\.cs$",
+                "locators": ["$1.xaml"]
             }
         ]
     }

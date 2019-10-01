@@ -1,45 +1,34 @@
 'use strict';
-import { Arrays } from './system';
-import { CancellationToken, ConfigurationChangeEvent, Disposable, ExtensionContext, TextDocument, Uri, workspace } from 'vscode';
-import { configuration, IConfig } from './configuration';
+import { CancellationToken, ConfigurationChangeEvent, Disposable, TextDocument, Uri, workspace } from 'vscode';
+import { Config, configuration, RuleDefinition, Ruleset } from './configuration';
+import { Container } from './container';
 import { Logger } from './logger';
-import { IRule, IRuleDefinition, Rule } from './rule';
+import { DynamicRule, IRule, Rule } from './rule';
+import { Arrays } from './system';
+import { FileSystem } from './system/fs';
 
-export { IRule, IRuleDefinition, Rule };
+export { DynamicRule, IRule, Rule };
 
-export interface IRuleset {
+interface RegisteredRuleset {
     name: string;
-    rules: IRuleDefinition[];
+    rules: (DynamicRule | RuleDefinition)[];
 }
 
-export interface IDynamicRule {
-    match(fileName: string): boolean;
-    provideRelated(fileName: string, document: TextDocument, rootPath: string): Promise<Uri[]>;
-}
-
-interface IRegisteredRuleset {
-    name: string;
-    rules: (IDynamicRule | IRuleDefinition)[];
-}
-
-export class RulesProvider extends Disposable {
-
+export class RulesProvider implements Disposable {
     private static _excludes: null | undefined;
 
     rules!: IRule[];
-    rulesets: IRuleset[];
+    rulesets: Ruleset[];
 
     private readonly _disposable: Disposable;
-    private _registeredRulesets: IRegisteredRuleset[] | undefined;
+    private _registeredRulesets: RegisteredRuleset[] | undefined;
 
-    constructor(context: ExtensionContext) {
-        super(() => this.dispose());
+    constructor() {
+        this.rulesets = FileSystem.loadJsonFromFileSync<Ruleset[]>(
+            Container.context.asAbsolutePath('./rulesets.json')
+        )!;
 
-        this.rulesets = require(context.asAbsolutePath('./rulesets.json'));
-
-        this._disposable = Disposable.from(
-            configuration.onDidChange(this.onConfigurationChanged, this)
-        );
+        this._disposable = Disposable.from(configuration.onDidChange(this.onConfigurationChanged, this));
         this.onConfigurationChanged(configuration.initializingChangeEvent);
     }
 
@@ -50,11 +39,13 @@ export class RulesProvider extends Disposable {
     private onConfigurationChanged(e: ConfigurationChangeEvent): void {
         const initializing = configuration.initializing(e);
 
-        if (initializing ||
+        if (
+            initializing ||
             configuration.changed(e, configuration.name('applyRulesets').value) ||
             configuration.changed(e, configuration.name('applyWorkspaceRulesets').value) ||
             configuration.changed(e, configuration.name('rulesets').value) ||
-            configuration.changed(e, configuration.name('workspaceRulesets').value)) {
+            configuration.changed(e, configuration.name('workspaceRulesets').value)
+        ) {
             this.compileRules();
         }
 
@@ -69,21 +60,26 @@ export class RulesProvider extends Disposable {
         return this.rules.filter(r => r.match(fileName));
     }
 
-    *resolveRules(rules: IRule[], fileName: string, document: TextDocument, rootPath: string | undefined): Iterable<Promise<Uri[]>> {
+    *resolveRules(
+        rules: IRule[],
+        fileName: string,
+        document: TextDocument,
+        rootPath: string
+    ): Iterable<Promise<Uri[]>> {
         for (const rule of rules) {
-            yield *rule.provideRelated(fileName, document, rootPath);
+            yield* rule.provideRelated(fileName, document, rootPath);
         }
     }
 
-    registerRuleset(name: string, rules: (IDynamicRule | IRuleDefinition)[]): Disposable {
+    registerRuleset(name: string, rules: (DynamicRule | RuleDefinition)[]): Disposable {
         if (this._registeredRulesets === undefined) {
             this._registeredRulesets = [];
         }
 
-        const ruleset = {
+        const ruleset: RegisteredRuleset = {
             name: name,
             rules: rules
-        } as IRegisteredRuleset;
+        };
         this._registeredRulesets.push(ruleset);
 
         this.compileRules();
@@ -102,7 +98,7 @@ export class RulesProvider extends Disposable {
     private compileRules(): void {
         const rules: IRule[] = [];
 
-        const cfg = configuration.get<IConfig>();
+        const cfg = configuration.get<Config>();
         if (cfg !== undefined) {
             const applied = Arrays.union(cfg.applyRulesets, cfg.applyWorkspaceRulesets);
 
@@ -110,7 +106,8 @@ export class RulesProvider extends Disposable {
                 const userDefinedRulesets = cfg.rulesets || [];
                 const workspaceDefinedRulesets = cfg.workspaceRulesets || [];
                 for (const name of applied) {
-                    const ruleset = workspaceDefinedRulesets.find(_ => _.name === name) ||
+                    const ruleset =
+                        workspaceDefinedRulesets.find(_ => _.name === name) ||
                         userDefinedRulesets.find(_ => _.name === name) ||
                         this.rulesets.find(_ => _.name === name);
                     if (!ruleset) continue;
@@ -122,16 +119,19 @@ export class RulesProvider extends Disposable {
 
         if (this._registeredRulesets && this._registeredRulesets.length) {
             for (const ruleset of this._registeredRulesets) {
-                rules.push(...ruleset.rules.map(rule => {
-                    if (Rule.isDynamic(rule)) {
-                        return {
-                            match: rule.match,
-                            provideRelated: (fileName: string, document: TextDocument, rootPath: string) => [rule.provideRelated(fileName, document, rootPath)]
-                        } as IRule;
-                    }
+                rules.push(
+                    ...ruleset.rules.map<IRule>(rule => {
+                        if (Rule.isDynamic(rule)) {
+                            return {
+                                match: rule.match,
+                                provideRelated: (fileName: string, document: TextDocument, rootPath: string) =>
+                                    [rule.provideRelated(fileName, document, rootPath)] as Iterable<Promise<Uri[]>>
+                            };
+                        }
 
-                    return new Rule(rule, ruleset.name);
-                }));
+                        return new Rule(rule, ruleset.name);
+                    })
+                );
             }
         }
 
@@ -142,10 +142,11 @@ export class RulesProvider extends Disposable {
         this.rules = rules;
     }
 
-    static findFiles(pattern: string, maxResults ?: number, token ?: CancellationToken): Promise < Uri[] > {
+    static async findFiles(pattern: string, rootPath: string, maxResults?: number, token?: CancellationToken): Promise<Uri[]> {
         Logger.log(`RulesProvider.findFiles(${pattern}, ${maxResults})`);
 
-        return workspace.findFiles(pattern, this._excludes, maxResults, token) as Promise<Uri[]>;
+        const files = await workspace.findFiles({ base: rootPath, pattern: pattern }, this._excludes, maxResults, token);
+        return files;
     }
 
     // private static getFindFilesExcludes(): string| undefined {

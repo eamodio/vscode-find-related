@@ -1,69 +1,33 @@
 'use strict';
-import { Arrays, Strings } from './system';
-import { commands, Disposable, TextDocument, TextDocumentShowOptions, TextEditor, Uri, window, workspace } from 'vscode';
-import { configuration, ExtensionKey, IConfig } from './configuration';
+import * as path from 'path';
+import {
+    commands,
+    Disposable,
+    TextDocument,
+    TextDocumentShowOptions,
+    TextEditor,
+    Uri,
+    ViewColumn,
+    window,
+    workspace
+} from 'vscode';
+import { Container } from './container';
 import { Logger } from './logger';
 import { RelatedQuickPick } from './quickPicks';
-import { IRule, RulesProvider } from './rulesProvider';
-import * as path from 'path';
+import { IRule } from './rulesProvider';
+import { Arrays, Command, createCommandDecorator, Strings } from './system';
 
-interface CommandOptions {
-    customErrorHandling?: boolean;
-    showErrorMessage?: string;
-}
+const commandRegistry: Command[] = [];
+const command = createCommandDecorator(commandRegistry);
 
-interface Command {
-    name: string;
-    key: string;
-    method: Function;
-    options: CommandOptions;
-}
-
-const registry: Command[] = [];
-
-function command(command: string, options: CommandOptions = {}): Function {
-    return (target: any, key: string, descriptor: any) => {
-        if (!(typeof descriptor.value === 'function')) throw new Error('not supported');
-
-        let method;
-        if (!options.customErrorHandling) {
-            method = async function(this: any, ...args: any[]) {
-                try {
-                    return await descriptor.value.apply(this, args);
-                }
-                catch (ex) {
-                    Logger.error(ex);
-
-                    if (options.showErrorMessage) {
-                        window.showErrorMessage(`${options.showErrorMessage} \u00a0\u2014\u00a0 ${ex.toString()}`);
-                    }
-                }
-            };
-        }
-        else {
-            method = descriptor.value;
-        }
-
-        registry.push({
-            name: `${ExtensionKey}.${command}`,
-            key: key,
-            method: method,
-            options: options
-        });
-    };
-}
-
-export class Commands extends Disposable {
-
+export class Commands implements Disposable {
     private readonly _disposable: Disposable;
 
-    constructor(
-        private readonly rulesProvider: RulesProvider
-    ) {
-        super(() => this.dispose);
-
+    constructor() {
         this._disposable = Disposable.from(
-            ...registry.map(({ name, key, method }) => commands.registerCommand(name, (...args: any[]) => method.apply(this, args)))
+            ...commandRegistry.map(({ name, key, method }) =>
+                commands.registerCommand(name, (...args: any[]) => method.apply(this, args))
+            )
         );
     }
 
@@ -76,12 +40,12 @@ export class Commands extends Disposable {
         const editor = window.activeTextEditor;
         if (editor === undefined || editor.document === undefined || editor.document.isUntitled) return undefined;
 
-        const fileName = Strings.normalizePath(workspace.asRelativePath(editor.document.fileName));
+        const fileName = Strings.normalizePath(workspace.asRelativePath(editor.document.fileName, false));
 
         const placeHolder = `files related to ${path.basename(fileName)} \u00a0\u2022\u00a0 ${path.dirname(fileName)}`;
         const progressCancellation = RelatedQuickPick.showProgress(placeHolder);
         try {
-            const activeRules = this.rulesProvider.provideRules(fileName);
+            const activeRules = Container.rules.provideRules(fileName);
             if (activeRules.length === 0) return undefined;
 
             if (progressCancellation.token.isCancellationRequested) return undefined;
@@ -91,8 +55,13 @@ export class Commands extends Disposable {
 
             if (progressCancellation.token.isCancellationRequested) return undefined;
 
-            const cfg = configuration.get<IConfig>();
-            if (uris.length === 1 && cfg.autoOpen) return await openEditor(uris[0], { preview: cfg.openPreview });
+            const cfg = Container.config;
+            if (cfg.autoOpen && uris.length === 1) {
+                return await openEditor(uris[0], {
+                    preview: cfg.openPreview,
+                    openSideBySide: cfg.openSideBySide
+                });
+            }
 
             const pick = await RelatedQuickPick.show(uris, placeHolder, progressCancellation);
             if (pick === undefined) return undefined;
@@ -104,24 +73,38 @@ export class Commands extends Disposable {
         }
     }
 
-    private async getRelatedFiles(rules: IRule[], fileName: string, document: TextDocument): Promise<Uri[] | undefined> {
-        const filesets = await Promise.all(this.rulesProvider.resolveRules(rules, fileName, document, workspace.rootPath));
+    private async getRelatedFiles(
+        rules: IRule[],
+        fileName: string,
+        document: TextDocument
+    ): Promise<Uri[] | undefined> {
+        const folder = workspace.getWorkspaceFolder(document.uri);
+        if (folder === undefined) return undefined;
+
+        const filesets = await Promise.all(Container.rules.resolveRules(rules, fileName, document, folder.uri.fsPath));
         if (filesets === undefined || filesets.length === 0) return undefined;
 
         return Arrays.union(...filesets).filter(uri => uri.fsPath !== fileName);
     }
 }
 
-export async function openEditor(uri: Uri, options?: TextDocumentShowOptions): Promise<TextEditor | undefined> {
+export async function openEditor(
+    uri: Uri,
+    options?: TextDocumentShowOptions & { openSideBySide?: boolean }
+): Promise<TextEditor | undefined> {
+    const { openSideBySide = false, ...opts } = options || {};
+
     try {
         const defaults: TextDocumentShowOptions = {
             preserveFocus: false,
             preview: true,
-            viewColumn: (window.activeTextEditor && window.activeTextEditor.viewColumn) || 1
+            viewColumn: openSideBySide
+                ? ViewColumn.Beside
+                : (window.activeTextEditor && window.activeTextEditor.viewColumn) || ViewColumn.One
         };
 
         const document = await workspace.openTextDocument(uri);
-        return window.showTextDocument(document, { ...defaults, ...(options || {}) });
+        return window.showTextDocument(document, { ...defaults, ...opts });
     }
     catch (ex) {
         Logger.error(ex, 'openEditor');

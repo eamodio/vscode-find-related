@@ -2,21 +2,18 @@
     "compilerOptions": {
         "experimentalDecorators": true,
         "forceConsistentCasingInFileNames": true,
-        "lib": [ "es2015", "es2016" ],
-        "module": "commonjs",
+        "lib": ["es2018"],
+        "module": "esnext",
+        "moduleResolution": "node",
         "noFallthroughCasesInSwitch": true,
         "noImplicitReturns": true,
-        "noUnusedLocals": true,
-        "outDir": "out",
-        "removeComments": true,
-        "rootDir": ".",
-        "skipLibCheck": true,
+        "noUnusedLocals": false,
+        "outDir": "dist",
+        "resolveJsonModule": true,
+        "rootDir": "src",
         "sourceMap": true,
         "strict": true,
-        "target": "es2016"
+        "target": "es2018"
     },
-    "exclude": [
-        "node_modules",
-        ".vscode-test"
-    ]
+    "exclude": ["node_modules"]
 }
