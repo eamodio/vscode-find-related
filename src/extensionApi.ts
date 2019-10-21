@@ -2,7 +2,7 @@
 import { Disposable } from 'vscode';
 import { RuleDefinition } from './configuration';
 import { Container } from './container';
-import { DynamicRule } from './rulesProvider';
+import { DynamicRule } from './rule';
 
 export class FindRelatedApi implements Disposable {
 	dispose() {

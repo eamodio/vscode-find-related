@@ -14,7 +14,7 @@ import {
 import { Container } from './container';
 import { Logger } from './logger';
 import { RelatedQuickPick } from './quickPicks';
-import { IRule } from './rulesProvider';
+import { IRule } from './rule';
 import { Arrays, Command, createCommandDecorator, Strings } from './system';
 
 const commandRegistry: Command[] = [];

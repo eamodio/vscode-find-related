@@ -1,13 +1,10 @@
 'use strict';
 import { CancellationToken, ConfigurationChangeEvent, Disposable, TextDocument, Uri, workspace } from 'vscode';
-import { Config, configuration, RuleDefinition, Ruleset } from './configuration';
+import { configuration, RuleDefinition, Ruleset } from './configuration';
 import { Container } from './container';
 import { Logger } from './logger';
 import { DynamicRule, IRule, Rule } from './rule';
-import { Arrays } from './system';
-import { FileSystem } from './system/fs';
-
-export { DynamicRule, IRule, Rule };
+import { Arrays, FileSystem } from './system';
 
 interface RegisteredRuleset {
 	name: string;
@@ -41,18 +38,16 @@ export class RulesProvider implements Disposable {
 
 		if (
 			initializing ||
-			configuration.changed(e, configuration.name('applyRulesets').value) ||
-			configuration.changed(e, configuration.name('applyWorkspaceRulesets').value) ||
-			configuration.changed(e, configuration.name('rulesets').value) ||
-			configuration.changed(e, configuration.name('workspaceRulesets').value)
+			configuration.changed(e, 'applyRulesets') ||
+			configuration.changed(e, 'applyWorkspaceRulesets') ||
+			configuration.changed(e, 'rulesets') ||
+			configuration.changed(e, 'workspaceRulesets')
 		) {
 			this.compileRules();
 		}
 
-		if (initializing || configuration.changed(e, configuration.name('ignoreExcludes').value)) {
-			RulesProvider._excludes = configuration.get<boolean>(configuration.name('ignoreExcludes').value)
-				? null
-				: undefined;
+		if (initializing || configuration.changed(e, 'ignoreExcludes')) {
+			RulesProvider._excludes = configuration.get('ignoreExcludes') ? null : undefined;
 		}
 	}
 
@@ -98,7 +93,7 @@ export class RulesProvider implements Disposable {
 	private compileRules(): void {
 		const rules: IRule[] = [];
 
-		const cfg = configuration.get<Config>();
+		const cfg = configuration.get();
 		if (cfg !== undefined) {
 			const applied = Arrays.union(cfg.applyRulesets, cfg.applyWorkspaceRulesets);
 

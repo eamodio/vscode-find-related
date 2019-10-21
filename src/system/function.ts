@@ -1,10 +1,5 @@
 'use strict';
 
-interface PropOfValue {
-	(): any;
-	value: string | undefined;
-}
-
 export namespace Functions {
 	const comma = ',';
 	const emptyStr = '';
@@ -35,24 +30,23 @@ export namespace Functions {
 		fnBody = fnBody.slice(open, close);
 		fnBody = `(${fnBody})`;
 
-		const match = fnBody.match(fnBodyRegex);
+		const match = fnBodyRegex.exec(fnBody);
 		return match != null
 			? match[1].split(comma).map(param => param.trim().replace(fnBodyStripParamDefaultValueRegex, emptyStr))
 			: [];
 	}
 
-	export function isPromise<T>(obj: T | Promise<T>): obj is Promise<T> {
-		return obj && typeof (obj as Promise<T>).then === 'function';
-	}
+	export function is<T extends object>(o: T | null | undefined): o is T;
+	export function is<T extends object>(o: object, prop: keyof T, value?: any): o is T;
+	export function is<T extends object>(o: object, matcher: (o: object) => boolean): o is T;
+	export function is<T extends object>(
+		o: object,
+		propOrMatcher?: keyof T | ((o: any) => boolean),
+		value?: any
+	): o is T {
+		if (propOrMatcher == null) return o != null;
+		if (typeof propOrMatcher === 'function') return propOrMatcher(o);
 
-	export function propOf<T, K extends Extract<keyof T, string>>(o: T, key: K) {
-		const propOfCore = <T, K extends Extract<keyof T, string>>(o: T, key: K) => {
-			const value: string =
-				(propOfCore as PropOfValue).value === undefined ? key : `${(propOfCore as PropOfValue).value}.${key}`;
-			(propOfCore as PropOfValue).value = value;
-			const fn = <Y extends Extract<keyof T[K], string>>(k: Y) => propOfCore(o[key], k);
-			return Object.assign(fn, { value: value });
-		};
-		return propOfCore(o, key);
+		return value === undefined ? (o as any)[propOrMatcher] !== undefined : (o as any)[propOrMatcher] === value;
 	}
 }

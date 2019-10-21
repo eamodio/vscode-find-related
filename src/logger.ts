@@ -2,7 +2,6 @@
 import { ExtensionContext, OutputChannel, Uri, window } from 'vscode';
 import { extensionOutputChannelName } from './constants';
 import { getCorrelationContext } from './system';
-// import { Telemetry } from './telemetry';
 
 const emptyStr = '';
 
@@ -83,11 +82,7 @@ export class Logger {
 		if (contextOrMessage === undefined || typeof contextOrMessage === 'string') {
 			message = contextOrMessage;
 		} else {
-			message = params.shift();
-
-			if (contextOrMessage !== undefined) {
-				message = `${contextOrMessage.prefix} ${message || emptyStr}`;
-			}
+			message = `${contextOrMessage.prefix} ${params.shift() || emptyStr}`;
 		}
 
 		if (message === undefined) {
@@ -109,8 +104,6 @@ export class Logger {
 				`${this.timestamp} ${message || emptyStr}${this.toLoggableParams(false, params)}\n${ex}`
 			);
 		}
-
-		// Telemetry.trackException(ex);
 	}
 
 	static getCorrelationContext() {

@@ -3,6 +3,7 @@
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const { CleanWebpackPlugin: CleanPlugin } = require('clean-webpack-plugin');
 const CircularDependencyPlugin = require('circular-dependency-plugin');
+const ForkTsCheckerPlugin = require('fork-ts-checker-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 
 module.exports = function(env, argv) {
@@ -14,7 +15,13 @@ module.exports = function(env, argv) {
 	/**
 	 * @type any[]
 	 */
-	const plugins = [new CleanPlugin()];
+	const plugins = [
+		new CleanPlugin(),
+		new ForkTsCheckerPlugin({
+			async: false,
+			eslint: true
+		})
+	];
 
 	if (env.analyzeDeps) {
 		plugins.push(
@@ -23,7 +30,7 @@ module.exports = function(env, argv) {
 				exclude: /node_modules/,
 				failOnError: false,
 				onDetected: function({ module: webpackModuleRecord, paths, compilation }) {
-					if (paths.some(p => /container\.ts/.test(p))) return;
+					if (paths.some(p => p.includes('container.ts'))) return;
 
 					compilation.warnings.push(new Error(paths.join(' -> ')));
 				}
@@ -70,23 +77,15 @@ module.exports = function(env, argv) {
 		module: {
 			rules: [
 				{
-					enforce: 'pre',
 					exclude: /node_modules|\.d\.ts$/,
 					test: /\.tsx?$/,
-					use: [
-						{
-							loader: 'eslint-loader',
-							options: {
-								cache: true,
-								failOnError: true
-							}
+					use: {
+						loader: 'ts-loader',
+						options: {
+							experimentalWatchApi: true,
+							transpileOnly: true
 						}
-					]
-				},
-				{
-					exclude: /node_modules|\.d\.ts$/,
-					test: /\.tsx?$/,
-					use: 'ts-loader'
+					}
 				}
 			]
 		},

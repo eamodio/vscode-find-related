@@ -1,6 +1,7 @@
 'use strict';
 import { LogCorrelationContext, Logger, TraceLevel } from '../../logger';
 import { Functions } from '../function';
+import { Promises } from '../promise';
 import { Strings } from '../string';
 
 const emptyStr = '';
@@ -31,9 +32,9 @@ function setCorrelationContext(correlationId: number, context: LogCorrelationCon
 	correlationContext.set(correlationId, context);
 }
 
-export interface LogContext<T> {
+export interface LogContext {
 	id: number;
-	instance: T;
+	instance: any;
 	instanceName: string;
 	name: string;
 	prefix: string;
@@ -54,7 +55,7 @@ export function debug<T extends (...arg: any) => any>(
 		correlate?: boolean;
 		enter?(...args: Parameters<T>): string;
 		exit?(result: PromiseType<ReturnType<T>>): string;
-		prefix?(context: LogContext<T>, ...args: Parameters<T>): string;
+		prefix?(context: LogContext, ...args: Parameters<T>): string;
 		sanitize?(key: string, value: any): any;
 		singleLine?: boolean;
 		timed?: boolean;
@@ -73,7 +74,7 @@ export function log<T extends (...arg: any) => any>(
 		debug?: boolean;
 		enter?(...args: Parameters<T>): string;
 		exit?(result: PromiseType<ReturnType<T>>): string;
-		prefix?(context: LogContext<T>, ...args: Parameters<T>): string;
+		prefix?(context: LogContext, ...args: Parameters<T>): string;
 		sanitize?(key: string, value: any): any;
 		singleLine?: boolean;
 		timed?: boolean;
@@ -276,7 +277,7 @@ export function log<T extends (...arg: any) => any>(
 					}
 				};
 
-				if (result != null && Functions.isPromise(result)) {
+				if (result != null && Promises.is(result)) {
 					const promise = result.then(logResult);
 					promise.catch(logError);
 				} else {

@@ -1,13 +1,13 @@
 'use strict';
 import { ExtensionContext } from 'vscode';
-import { Config, Configuration, configuration } from './configuration';
+import { Configuration, configuration } from './configuration';
 import { Container } from './container';
-import { Logger, TraceLevel } from './logger';
+import { Logger } from './logger';
 
 export function activate(context: ExtensionContext) {
-	Logger.configure(context, configuration.get<TraceLevel>(configuration.name('outputLevel').value));
+	Logger.configure(context, configuration.get('outputLevel'));
 	Configuration.configure(context);
-	Container.initialize(context, configuration.get<Config>());
+	Container.initialize(context, configuration.get());
 
 	return Container.api;
 }
