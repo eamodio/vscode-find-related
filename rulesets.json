@@ -85,5 +85,26 @@
                 "locators": ["$1.xaml"]
             }
         ]
+    },
+    {
+        "name": "delphi",
+        "rules": [
+            {
+                "pattern": "(.*)\\.(?:dfm)$",
+                "locators": [ "$1.pas" ]
+            },
+            {
+                "pattern": "(.*)\\.pas$",
+                "locators": [ "{$1.dfm}" ]
+            },
+            {
+                "pattern": "(.*)\\.dproj$",
+                "locators": [ "{$1.dpk,$1.dpr}" ]
+            },
+            {
+                "pattern": "(.*)\\.(?:dpk|dpr)$",
+                "locators": [ "$1.dproj" ]
+            }
+        ]
     }
 ]
