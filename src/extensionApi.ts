@@ -5,13 +5,13 @@ import { Container } from './container';
 import { DynamicRule } from './rulesProvider';
 
 export class FindRelatedApi implements Disposable {
-    dispose() {
-        // nothing to do
-    }
+	dispose() {
+		// nothing to do
+	}
 
-    registerRuleset(name: string, rules: RuleDefinition[]): Disposable;
-    registerRuleset(name: string, rules: DynamicRule[]): Disposable;
-    registerRuleset(name: string, rules: (DynamicRule | RuleDefinition)[]): Disposable {
-        return Container.rules.registerRuleset(name, rules);
-    }
+	registerRuleset(name: string, rules: RuleDefinition[]): Disposable;
+	registerRuleset(name: string, rules: DynamicRule[]): Disposable;
+	registerRuleset(name: string, rules: (DynamicRule | RuleDefinition)[]): Disposable {
+		return Container.rules.registerRuleset(name, rules);
+	}
 }

@@ -7,81 +7,81 @@ import { Keys } from '../keyboard';
 import { CommandQuickPickItem, QuickPickItem, showQuickPickProgress } from './common';
 
 export class RelatedFileQuickPickItem extends CommandQuickPickItem {
-    readonly uri: Uri;
+	readonly uri: Uri;
 
-    constructor(uri: Uri) {
-        const directory = path.dirname(workspace.asRelativePath(uri));
+	constructor(uri: Uri) {
+		const directory = path.dirname(workspace.asRelativePath(uri));
 
-        super(
-            {
-                label: `$(file-symlink-file) ${path.basename(uri.fsPath)}`,
-                description: directory === '.' ? '' : directory
-            },
-            undefined,
-            undefined
-        );
+		super(
+			{
+				label: `$(file-symlink-file) ${path.basename(uri.fsPath)}`,
+				description: directory === '.' ? '' : directory
+			},
+			undefined,
+			undefined
+		);
 
-        this.uri = uri;
-    }
+		this.uri = uri;
+	}
 
-    onDidSelect(): Promise<{} | undefined> {
-        if (!Container.config.autoPreview) return Promise.resolve(undefined);
+	onDidSelect(): Promise<{} | undefined> {
+		if (!Container.config.autoPreview) return Promise.resolve(undefined);
 
-        return this.execute({
-            preserveFocus: true,
-            preview: true
-        });
-    }
+		return this.execute({
+			preserveFocus: true,
+			preview: true
+		});
+	}
 
-    onDidPressKey(key: Keys): Promise<{} | undefined> {
-        return this.execute({
-            preserveFocus: true,
-            preview: false
-        });
-    }
-    execute(options: TextDocumentShowOptions & { openSideBySide?: boolean } = {}): Promise<TextEditor | undefined> {
-        if (options.openSideBySide === undefined) {
-            options.openSideBySide = Container.config.openSideBySide;
-        }
-        if (options.preview === undefined) {
-            options.preview = Container.config.openPreview;
-        }
+	onDidPressKey(key: Keys): Promise<{} | undefined> {
+		return this.execute({
+			preserveFocus: true,
+			preview: false
+		});
+	}
+	execute(options: TextDocumentShowOptions & { openSideBySide?: boolean } = {}): Promise<TextEditor | undefined> {
+		if (options.openSideBySide === undefined) {
+			options.openSideBySide = Container.config.openSideBySide;
+		}
+		if (options.preview === undefined) {
+			options.preview = Container.config.openPreview;
+		}
 
-        return openEditor(this.uri, options);
-    }
+		return openEditor(this.uri, options);
+	}
 }
 
 export class RelatedQuickPick {
-    static showProgress(placeHolder: string) {
-        return showQuickPickProgress(placeHolder, undefined, true);
-    }
+	static showProgress(placeHolder: string) {
+		return showQuickPickProgress(placeHolder, undefined, true);
+	}
 
-    static async show(
-        uris: Uri[],
-        placeHolder: string,
-        progressCancellation: CancellationTokenSource
-    ): Promise<RelatedFileQuickPickItem | undefined> {
-        const items = uris.map(uri => new RelatedFileQuickPickItem(uri));
+	static async show(
+		uris: Uri[],
+		placeHolder: string,
+		progressCancellation: CancellationTokenSource
+	): Promise<RelatedFileQuickPickItem | undefined> {
+		const items = uris.map(uri => new RelatedFileQuickPickItem(uri));
 
-        const scope = await Container.keyboard.beginScope();
+		const scope = await Container.keyboard.beginScope();
 
-        if (progressCancellation.token.isCancellationRequested) return undefined;
+		if (progressCancellation.token.isCancellationRequested) return undefined;
 
-        progressCancellation.cancel();
+		progressCancellation.cancel();
 
-        const pick = await window.showQuickPick(items, {
-            matchOnDescription: true,
-            placeHolder: placeHolder,
-            onDidSelectItem: (item: QuickPickItem) => {
-                void scope.setKeyCommand('right', item);
-                if (typeof item.onDidSelect === 'function') {
-                    item.onDidSelect();
-                }
-            }
-        });
+		const pick = await window.showQuickPick(items, {
+			matchOnDescription: true,
+			placeHolder: placeHolder,
+			onDidSelectItem: (item: QuickPickItem) => {
+				void scope.setKeyCommand('right', item);
+				if (typeof item.onDidSelect === 'function') {
+					item.onDidSelect();
+				}
+			}
+		});
 
-        await scope.dispose();
+		await scope.dispose();
 
-        return pick;
-    }
+		return pick;
+	}
 }

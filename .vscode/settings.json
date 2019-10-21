@@ -1,9 +1,9 @@
 {
-    "editor.insertSpaces": true,
-    "files.trimTrailingWhitespace": true,
-    "prettier.requireConfig": true,
-    "prettier.tslintIntegration": true,
-    "search.exclude": {
-        "**/dist": true
-    }
+	"editor.insertSpaces": true,
+	"files.trimTrailingWhitespace": true,
+	"prettier.requireConfig": true,
+	"prettier.tslintIntegration": true,
+	"search.exclude": {
+		"**/dist": true
+	}
 }
