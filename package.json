@@ -2,7 +2,7 @@
 	"name": "find-related",
 	"displayName": "Find Related Files",
 	"description": "Finds files related to the current file based on user-defined configuration rules",
-	"version": "0.8.1",
+	"version": "0.9.0",
 	"author": {
 		"name": "Eric Amodio",
 		"email": "eamodio@gmail.com"
@@ -18,7 +18,7 @@
 		"url": "https://github.com/eamodio/vscode-find-related.git"
 	},
 	"engines": {
-		"vscode": "^1.28.0"
+		"vscode": "^1.37.0"
 	},
 	"main": "./dist/extension",
 	"icon": "images/icon.png",
