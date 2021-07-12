@@ -17,6 +17,7 @@ Basic support for the following languages/frameworks is [built-in](#built-in-rul
 - asp.net mvc
 - aurelia
 - xaml
+- delphi
 
 Please open new [Github issues](https://github.com/eamodio/vscode-find-related/issues) with any rules you'd like included in the built-in ruleset.
 
@@ -30,93 +31,114 @@ Please open new [Github issues](https://github.com/eamodio/vscode-find-related/i
 
 ```
 [
-    {
-        "name": "minified",
-        "rules": [
-            {
-                "pattern": "(.*?)(\\.min)?\\.(js|css)(?:\\.map)?$",
-                "locators": ["{$1.$3,$1.min.$3,$1.$3.map,$1.min.$3.map}"]
-            }
-        ]
-    },
-    {
-        "name": "c/c++",
-        "rules": [
-            {
-                "pattern": "(.*)\\.(?:c|cpp)$",
-                "locators": ["$1.h"]
-            },
-            {
-                "pattern": "(.*)\\.h$",
-                "locators": ["{$1.c,$1.cpp}"]
-            }
-        ]
-    },
-    {
-        "name": "csharp",
-        "rules": [
-            {
-                "pattern": "(.*)\\.(?:cs|resx|settings)$",
-                "locators": ["$1.designer.cs"]
-            },
-            {
-                "pattern": "(.*)\\.designer\\.cs$",
-                "locators": ["{$1.cs,$1.resx,$1.settings}"]
-            }
-        ]
-    },
-    {
-        "name": "aspnet",
-        "rules": [
-            {
-                "pattern": "(.*)\\.(?:aspx|ascx|asax|ashx|asmx)$",
-                "locators": ["{$0.cs,$0.designer.cs}"]
-            },
-            {
-                "pattern": "(.*)\\.(aspx|ascx|asax|ashx|asmx)(\\.designer)?(\\.cs)$",
-                "locators": ["{$1.$2,$1$3$4}"]
-            }
-        ]
-    },
-    {
-        "name": "aspnet-mvc",
-        "rules": [
-            {
-                "pattern": "(.*)/views/(.*?)(?:/.*)?\\.cshtml$",
-                "locators": ["$1/**/Controllers/**/$2Controller.cs"]
-            },
-            {
-                "pattern": "(.*)/controllers/(.*)/?(.*)controller\\.cs$",
-                "locators": ["$1/**/Views/**/$2/**/*.cshtml"]
-            }
-        ]
-    },
-    {
-        "name": "aurelia",
-        "rules": [
-            {
-                "pattern": "(.*)\\.html$",
-                "locators": ["{$1.ts,$1.js}"]
-            },
-            {
-                "pattern": "(.*)\\.(?:ts|js)$",
-                "locators": ["$1.html"]
-            }
-        ]
-    },
-    {
-        "name": "xaml",
-        "rules": [
-            {
-                "pattern": "(.*)\\.xaml$",
-                "locators": ["$1.xaml.cs"]
-            },
-            {
-                "pattern": "(.*)\\.xaml\\.cs$",
-                "locators": ["$1.xaml"]
-            }
-        ]
-    }
+	{
+		"name": "minified",
+		"rules": [
+			{
+				"pattern": "(.*?)(\\.min)?\\.(js|css)(?:\\.map)?$",
+				"locators": ["{$1.$3,$1.min.$3,$1.$3.map,$1.min.$3.map}"]
+			}
+		]
+	},
+	{
+		"name": "c/c++",
+		"rules": [
+			{
+				"pattern": "(.*)\\.(?:c|cpp)$",
+				"locators": ["$1.h"]
+			},
+			{
+				"pattern": "(.*)\\.h$",
+				"locators": ["{$1.c,$1.cpp}"]
+			}
+		]
+	},
+	{
+		"name": "csharp",
+		"rules": [
+			{
+				"pattern": "(.*)\\.(?:cs|resx|settings)$",
+				"locators": ["$1.designer.cs"]
+			},
+			{
+				"pattern": "(.*)\\.designer\\.cs$",
+				"locators": ["{$1.cs,$1.resx,$1.settings}"]
+			}
+		]
+	},
+	{
+		"name": "aspnet",
+		"rules": [
+			{
+				"pattern": "(.*)\\.(?:aspx|ascx|asax|ashx|asmx)$",
+				"locators": ["{$0.cs,$0.designer.cs}"]
+			},
+			{
+				"pattern": "(.*)\\.(aspx|ascx|asax|ashx|asmx)(\\.designer)?(\\.cs)$",
+				"locators": ["{$1.$2,$1$3$4}"]
+			}
+		]
+	},
+	{
+		"name": "aspnet-mvc",
+		"rules": [
+			{
+				"pattern": "(.*)/views/(.*?)(?:/.*)?\\.cshtml$",
+				"locators": ["$1/**/Controllers/**/$2Controller.cs"]
+			},
+			{
+				"pattern": "(.*)/controllers/(.*)/?(.*)controller\\.cs$",
+				"locators": ["$1/**/Views/**/$2/**/*.cshtml"]
+			}
+		]
+	},
+	{
+		"name": "aurelia",
+		"rules": [
+			{
+				"pattern": "(.*)\\.html$",
+				"locators": ["{$1.ts,$1.js}"]
+			},
+			{
+				"pattern": "(.*)\\.(?:ts|js)$",
+				"locators": ["$1.html"]
+			}
+		]
+	},
+	{
+		"name": "xaml",
+		"rules": [
+			{
+				"pattern": "(.*)\\.xaml$",
+				"locators": ["$1.xaml.cs"]
+			},
+			{
+				"pattern": "(.*)\\.xaml\\.cs$",
+				"locators": ["$1.xaml"]
+			}
+		]
+	},
+	{
+		"name": "delphi",
+		"rules": [
+			{
+				"pattern": "(.*)\\.(?:dfm)$",
+				"locators": [ "$1.pas" ]
+			},
+			{
+				"pattern": "(.*)\\.pas$",
+				"locators": [ "{$1.dfm}" ]
+			},
+			{
+				"pattern": "(.*)\\.dproj$",
+				"locators": [ "{$1.dpk,$1.dpr}" ]
+			},
+			{
+				"pattern": "(.*)\\.(?:dpk|dpr)$",
+				"locators": [ "$1.dproj" ]
+			}
+		]
+	}
 ]
 ```
 
@@ -153,19 +175,19 @@ let findRelated = extensions.getExtension('eamodio.find-related');
 let api = findRelated.exports;
 
 let subscription1 = api.registerRuleset('static-rule', [
-    {
-        pattern: /* string -- regex pattern here */,
-        locators: [/* string -- glob patterns here */]
-    }
+	{
+		pattern: /* string -- regex pattern here */,
+		locators: [/* string -- glob patterns here */]
+	}
 ]);
 
 let subscription2 = api.registerRuleset('dynamic-rule', [
-    {
-        match: (fileName: string) => /* matching logic here -- return a boolean */,
-        provideRelated: (fileName: string, document: TextDocument, rootPath: string) => {
-            return Promise.resolve([/* related uris here */]);
-        }
-    }
+	{
+		match: (fileName: string) => /* matching logic here -- return a boolean */,
+		provideRelated: (fileName: string, document: TextDocument, rootPath: string) => {
+			return Promise.resolve([/* related uris here */]);
+		}
+	}
 ]);
 
 // To remove a registered ruleset, just dispose its subscription
