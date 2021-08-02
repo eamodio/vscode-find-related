@@ -106,5 +106,35 @@
 				"locators": ["$1.dproj"]
 			}
 		]
+	},
+	{
+		"name": "elixir",
+		"rules": [
+			{
+				"pattern": "test/(.*)/(.*)_test.exs$",
+				"locators": ["lib/$1/$2.ex"]
+			},
+			{
+				"pattern": "lib/(.*)/(.*).ex$",
+				"locators": ["test/$1/$2_test.exs"]
+			}
+		]
+	},
+	{
+		"name": "phoenix",
+		"rules": [
+			{
+				"pattern": "test/(.*)/(.*)_test.exs$",
+				"locators": ["lib/$1/$2.html.leex"]
+			},
+			{
+				"pattern": "lib/(.*)/(.*).ex$",
+				"locators": ["lib/$1/$2.html.leex"]
+			},
+			{
+				"pattern": "lib/(.*)/(.*).html.leex$",
+				"locators": ["test/$1/$2_test.exs", "lib/$1/$2.ex"]
+			}
+		]
 	}
 ]

@@ -17,6 +17,8 @@ Basic support for the following languages/frameworks is [built-in](#built-in-rul
 - ASP.NET MVC
 - Aurelia
 - Delphi
+- Elixir
+- Phoenix framework
 - XAML
 
 Please open new [Github issues](https://github.com/eamodio/vscode-find-related/issues) with any rules you'd like included in the built-in ruleset.

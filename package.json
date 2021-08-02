@@ -69,7 +69,9 @@
 							"c/c++",
 							"csharp",
 							"delphi",
+							"elixir",
 							"minified",
+							"phoenix",
 							"xaml"
 						],
 						"items": {
@@ -81,7 +83,9 @@
 								"c/c++",
 								"csharp",
 								"delphi",
+								"elixir",
 								"minified",
+								"phoenix",
 								"xaml"
 							],
 							"enumDescriptions": [
@@ -91,7 +95,9 @@
 								"Applies rules for C/C++ projects",
 								"Applies rules for C# projects",
 								"Applies rules for Delphi projects",
+								"Applies rules for Elixir projects",
 								"Applies rules for minified CSS/JS files",
+								"Applies rules for Phoenix framework projects",
 								"Applies rules for XAML files"
 							]
 						},
