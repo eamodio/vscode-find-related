@@ -87,6 +87,23 @@ export class Commands implements Disposable {
 	}
 }
 
+function findAlreadyOpenInOtherColumn(uri: Uri) {
+	const uriString = uri.toString();
+	const activeViewColumn = window.activeTextEditor && window.activeTextEditor.viewColumn;
+	const tabGroup = window.tabGroups.all.find(
+		(tg) =>
+			tg.viewColumn !== activeViewColumn &&
+			tg.tabs.some(
+				(tab) => {
+					const tabInput = tab.input;
+					const uri = typeof tabInput === 'object' && tabInput && (tabInput as { uri?: unknown }).uri;
+					return uri instanceof Uri && uri.toString() === uriString;
+				}
+			)
+	);
+	return tabGroup && tabGroup.viewColumn;
+}
+
 export async function openEditor(
 	uri: Uri,
 	options?: TextDocumentShowOptions & { openSideBySide?: boolean }
@@ -98,7 +115,7 @@ export async function openEditor(
 			preserveFocus: false,
 			preview: true,
 			viewColumn: openSideBySide
-				? ViewColumn.Beside
+				? findAlreadyOpenInOtherColumn(uri) || ViewColumn.Beside
 				: (window.activeTextEditor && window.activeTextEditor.viewColumn) || ViewColumn.One
 		};
 
