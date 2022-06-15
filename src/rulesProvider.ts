@@ -146,7 +146,7 @@ export class RulesProvider implements Disposable {
 		Logger.log(`RulesProvider.findFiles(${pattern}, ${maxResults})`);
 
 		const files = await workspace.findFiles(
-			{ base: rootPath, pattern: pattern },
+			{ base: rootPath, baseUri: Uri.file(rootPath), pattern: pattern },
 			this._excludes,
 			maxResults,
 			token

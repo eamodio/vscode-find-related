@@ -244,7 +244,7 @@
 	"devDependencies": {
 		"@types/lodash-es": "4.17.3",
 		"@types/node": "10.14.18",
-		"@types/vscode": "1.37.0",
+		"@types/vscode": "1.67.0",
 		"@typescript-eslint/eslint-plugin": "2.4.0",
 		"@typescript-eslint/parser": "2.4.0",
 		"circular-dependency-plugin": "5.2.0",
