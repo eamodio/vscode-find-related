@@ -214,7 +214,7 @@
 			{
 				"command": "findrelated.show",
 				"key": "alt+r",
-				"when": "editorFocus"
+				"when": "editorFocus && !findInputFocussed"
 			},
 			{
 				"command": "findrelated.key.right",
