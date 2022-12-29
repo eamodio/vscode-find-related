@@ -1,17 +1,18 @@
-'use strict';
-import { Disposable } from 'vscode';
-import { RuleDefinition } from './configuration';
-import { Container } from './container';
-import { DynamicRule } from './rule';
+import type { Disposable } from 'vscode';
+import type { RuleDefinition } from './configuration';
+import type { Container } from './container';
+import type { DynamicRule } from './rule';
 
 export class FindRelatedApi implements Disposable {
 	dispose() {
 		// nothing to do
 	}
 
+	constructor(private readonly container: Container) {}
+
 	registerRuleset(name: string, rules: RuleDefinition[]): Disposable;
 	registerRuleset(name: string, rules: DynamicRule[]): Disposable;
 	registerRuleset(name: string, rules: (DynamicRule | RuleDefinition)[]): Disposable {
-		return Container.rules.registerRuleset(name, rules);
+		return this.container.rules.registerRuleset(name, rules);
 	}
 }

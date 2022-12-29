@@ -1,6 +1,6 @@
-[![](https://vsmarketplacebadge.apphb.com/version-short/eamodio.find-related.svg)](https://marketplace.visualstudio.com/items?itemName=eamodio.find-related)
-[![](https://vsmarketplacebadge.apphb.com/downloads-short/eamodio.find-related.svg)](https://marketplace.visualstudio.com/items?itemName=eamodio.find-related)
-[![](https://vsmarketplacebadge.apphb.com/rating-short/eamodio.find-related.svg)](https://marketplace.visualstudio.com/items?itemName=eamodio.find-related)
+[![](https://vsmarketplacebadges.dev/version-short/amodio.find-related.svg)](https://marketplace.visualstudio.com/items?itemName=amodio.find-related)
+[![](https://vsmarketplacebadges.dev/downloads-short/amodio.find-related.svg)](https://marketplace.visualstudio.com/items?itemName=amodio.find-related)
+[![](https://vsmarketplacebadges.dev/rating-short/amodio.find-related.svg)](https://marketplace.visualstudio.com/items?itemName=amodio.find-related)
 [![](https://img.shields.io/badge/vscode--dev--community-find--related--files-blue.svg?logo=slack&labelColor=555555)](https://vscode-slack.amod.io)
 
 # Find Related Files
@@ -171,7 +171,7 @@ Find Related Files exports an API that can be used to expand its capabilities.
 #### Example
 
 ```
-let findRelated = extensions.getExtension('eamodio.find-related');
+let findRelated = extensions.getExtension('amodio.find-related');
 let api = findRelated.exports;
 
 let subscription1 = api.registerRuleset('static-rule', [

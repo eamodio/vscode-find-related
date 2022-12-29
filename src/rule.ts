@@ -1,8 +1,8 @@
-'use strict';
-import { TextDocument, Uri } from 'vscode';
-import { RuleDefinition } from './configuration';
+import type { TextDocument, Uri } from 'vscode';
+import type { RuleDefinition } from './configuration';
+import { configuration } from './configuration';
 import { Logger } from './logger';
-import { RulesProvider } from './rulesProvider';
+import { findFiles } from './rulesProvider';
 // import * as glob from 'glob';
 
 const tokenReplacer = /(\$([0-9]))/g;
@@ -12,7 +12,7 @@ export interface DynamicRule {
 	provideRelated(fileName: string, document: TextDocument, rootPath: string): Promise<Uri[]>;
 }
 
-// eslint-disable-next-line @typescript-eslint/interface-name-prefix
+// eslint-disable-next-line @typescript-eslint/naming-convention
 export interface IRule {
 	match(fileName: string): boolean;
 	provideRelated(fileName: string, document: TextDocument, rootPath: string): Iterable<Promise<Uri[]>>;
@@ -51,21 +51,23 @@ export class Rule implements IRule, RuleDefinition {
 	}
 
 	*provideRelated(fileName: string, document: TextDocument, rootPath: string): Iterable<Promise<Uri[]>> {
+		const excludes = configuration.get('ignoreExcludes') ? null : undefined;
+
 		for (const locator of this.locators) {
 			if (this._match == null) continue;
 
-			const globPattern = Rule.replaceTokens(locator, this._match);
+			const globPattern = this.replaceTokens(locator, this._match);
 			Logger.log(
 				`Rule(${this.rulesetName}).provideRelated(${fileName}, ${rootPath})`,
-				`globPattern=${globPattern}`
+				`globPattern=${globPattern}`,
 			);
 			// yield Rule.globAsync(globPattern, { cwd: rootPath, nocase: true });
-			yield RulesProvider.findFiles(globPattern, rootPath);
+			yield findFiles(globPattern, rootPath, excludes);
 		}
 	}
 
-	private static replaceTokens(pattern: string, ruleMatch: RegExpExecArray): string {
-		return pattern.replace(tokenReplacer, (match: string, p1: string, p2: string) => ruleMatch[Number(p2)]);
+	private replaceTokens(pattern: string, ruleMatch: RegExpExecArray): string {
+		return pattern.replace(tokenReplacer, (_match: string, _p1: string, p2: string) => ruleMatch[Number(p2)]);
 	}
 
 	// private static async globAsync(pattern: string, options?: glob.IOptions): Promise<Uri[]> {
@@ -79,11 +81,10 @@ export class Rule implements IRule, RuleDefinition {
 	//         });
 	//     });
 	// }
+}
 
-	static isDynamic(rule: DynamicRule | RuleDefinition): rule is DynamicRule {
-		return (
-			typeof (rule as DynamicRule).match === 'function' &&
-			typeof (rule as DynamicRule).provideRelated === 'function'
-		);
-	}
+export function isDynamicRule(rule: DynamicRule | RuleDefinition): rule is DynamicRule {
+	return (
+		typeof (rule as DynamicRule).match === 'function' && typeof (rule as DynamicRule).provideRelated === 'function'
+	);
 }

@@ -1,93 +1,146 @@
-'use strict';
-import { CancellationTokenSource, commands, Disposable, QuickPickItem, window } from 'vscode';
-import { Container } from '../container';
-import { KeyMapping, Keys } from '../keyboard';
+import type { QuickPickItem } from 'vscode';
+import { commands } from 'vscode';
+import type { Keys } from '../keyboard';
 
-export function showQuickPickProgress(
-	message: string,
-	mapping?: KeyMapping,
-	delay: boolean = false
-): CancellationTokenSource {
-	const cancellation = new CancellationTokenSource();
-
-	if (delay) {
-		// eslint-disable-next-line prefer-const
-		let disposable: Disposable;
-		const timer = setTimeout(() => {
-			disposable && disposable.dispose();
-			void _showQuickPickProgress(message, cancellation, mapping);
-		}, 250);
-		disposable = cancellation.token.onCancellationRequested(() => clearTimeout(timer));
-	} else {
-		void _showQuickPickProgress(message, cancellation, mapping);
+declare module 'vscode' {
+	interface QuickPickItem {
+		onDidSelect?(): void;
+		onDidPressKey?(key: Keys): Promise<void>;
 	}
-
-	return cancellation;
 }
 
-async function _showQuickPickProgress(message: string, cancellation: CancellationTokenSource, mapping?: KeyMapping) {
-	const scope = mapping && (await Container.keyboard.beginScope(mapping));
+// export function showQuickPickProgress(
+// 	message: string,
+// 	mapping?: KeyMapping,
+// 	delay: boolean = false,
+// ): CancellationTokenSource {
+// 	const cancellation = new CancellationTokenSource();
 
-	try {
-		await window.showQuickPick(
-			_getInfiniteCancellablePromise(cancellation),
-			{
-				placeHolder: message
-			},
-			cancellation.token
+// 	if (delay) {
+// 		// eslint-disable-next-line prefer-const
+// 		let disposable: Disposable;
+// 		const timer = setTimeout(() => {
+// 			disposable?.dispose();
+// 			void _showQuickPickProgress(message, cancellation, mapping);
+// 		}, 250);
+// 		disposable = cancellation.token.onCancellationRequested(() => clearTimeout(timer));
+// 	} else {
+// 		void _showQuickPickProgress(message, cancellation, mapping);
+// 	}
+
+// 	return cancellation;
+// }
+
+// async function _showQuickPickProgress(message: string, cancellation: CancellationTokenSource, mapping?: KeyMapping) {
+// 	const scope = mapping && (await Container.keyboard.beginScope(mapping));
+
+// 	try {
+// 		await window.showQuickPick(
+// 			_getInfiniteCancellablePromise(cancellation),
+// 			{
+// 				placeHolder: message,
+// 			},
+// 			cancellation.token,
+// 		);
+// 	} catch (ex) {
+// 		// Not sure why this throws
+// 	} finally {
+// 		cancellation.cancel();
+// 		scope?.dispose();
+// 	}
+// }
+
+// function _getInfiniteCancellablePromise(cancellation: CancellationTokenSource) {
+// 	return new Promise<QuickPickItem[]>((resolve, reject) => {
+// 		const disposable = cancellation.token.onCancellationRequested(() => {
+// 			disposable.dispose();
+// 			resolve([]);
+// 		});
+// 	});
+// }
+
+export class CommandQuickPickItem<Arguments extends any[] = any[]> implements QuickPickItem {
+	static fromCommand<T>(label: string, command: string, args?: T): CommandQuickPickItem;
+	static fromCommand<T>(item: QuickPickItem, command: string, args?: T): CommandQuickPickItem;
+	static fromCommand<T>(labelOrItem: string | QuickPickItem, command: string, args?: T): CommandQuickPickItem {
+		return new CommandQuickPickItem(
+			typeof labelOrItem === 'string' ? { label: labelOrItem } : labelOrItem,
+			command,
+			args == null ? [] : [args],
 		);
-	} catch (ex) {
-		// Not sure why this throws
-	} finally {
-		cancellation.cancel();
-		scope && scope.dispose();
 	}
-}
 
-function _getInfiniteCancellablePromise(cancellation: CancellationTokenSource) {
-	return new Promise<QuickPickItem[]>((resolve, reject) => {
-		const disposable = cancellation.token.onCancellationRequested(() => {
-			disposable.dispose();
-			resolve([]);
-		});
-	});
-}
+	static is(item: QuickPickItem): item is CommandQuickPickItem {
+		return item instanceof CommandQuickPickItem;
+	}
 
-export interface QuickPickItem extends QuickPickItem {
-	onDidSelect?(): void;
-	onDidPressKey?(key: Keys): Promise<{} | undefined>;
-}
-
-export class CommandQuickPickItem implements QuickPickItem {
 	label!: string;
-	description!: string;
+	description?: string;
 	detail?: string | undefined;
-	protected command: string | undefined;
-	protected args: any[] | undefined;
 
-	constructor(item: QuickPickItem, args?: [string, any[]]);
-	constructor(item: QuickPickItem, command?: string, args?: any[]);
-	constructor(item: QuickPickItem, commandOrArgs?: string | [string, any[]], args?: any[]) {
-		if (commandOrArgs === undefined) {
-			this.command = undefined;
-			this.args = args;
-		} else if (typeof commandOrArgs === 'string') {
-			this.command = commandOrArgs;
-			this.args = args;
+	constructor(
+		label: string,
+		command?: string,
+		args?: Arguments,
+		options?: {
+			onDidPressKey?: (key: Keys, result: Thenable<unknown>) => void;
+			suppressKeyPress?: boolean;
+		},
+	);
+	constructor(
+		item: QuickPickItem,
+		command?: string,
+		args?: Arguments,
+		options?: {
+			onDidPressKey?: (key: Keys, result: Thenable<unknown>) => void;
+			suppressKeyPress?: boolean;
+		},
+	);
+	constructor(
+		labelOrItem: string | QuickPickItem,
+		command?: string,
+		args?: Arguments,
+		options?: {
+			onDidPressKey?: (key: Keys, result: Thenable<unknown>) => void;
+			suppressKeyPress?: boolean;
+		},
+	);
+	constructor(
+		labelOrItem: string | QuickPickItem,
+		protected readonly command?: string,
+		protected readonly args?: Arguments,
+		protected readonly options?: {
+			// onDidExecute?: (
+			// 	options: { preserveFocus?: boolean; preview?: boolean } | undefined,
+			// 	result: Thenable<unknown>,
+			// ) => void;
+			onDidPressKey?: (key: Keys, result: Thenable<unknown>) => void;
+			suppressKeyPress?: boolean;
+		},
+	) {
+		this.command = command;
+		this.args = args;
+
+		if (typeof labelOrItem === 'string') {
+			this.label = labelOrItem;
 		} else {
-			this.command = commandOrArgs[0];
-			this.args = commandOrArgs.slice(1);
+			Object.assign(this, labelOrItem);
 		}
-		Object.assign(this, item);
 	}
 
-	execute(): Promise<{} | undefined> {
+	execute(_options?: { preserveFocus?: boolean; preview?: boolean }): Promise<unknown | undefined> {
 		if (this.command === undefined) return Promise.resolve(undefined);
 
-		return commands.executeCommand(this.command, ...(this.args || [])) as Promise<{} | undefined>;
+		const result = commands.executeCommand(this.command, ...(this.args ?? [])) as Promise<unknown | undefined>;
+		// this.options?.onDidExecute?.(options, result);
+		return result;
 	}
 
-	onDidPressKey(key: Keys): Promise<{} | undefined> {
-		return this.execute();
+	async onDidPressKey(key: Keys): Promise<void> {
+		if (this.options?.suppressKeyPress) return;
+
+		const result = this.execute({ preserveFocus: true, preview: false });
+		this.options?.onDidPressKey?.(key, result);
+		void (await result);
 	}
 }

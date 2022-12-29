@@ -1,6 +1,3 @@
-'use strict';
-import { TraceLevel } from './logger';
-
 export interface RuleDefinition {
 	pattern: string;
 	locators: string[];
@@ -11,6 +8,13 @@ export interface Ruleset {
 	rules: RuleDefinition[];
 }
 
+export enum OutputLevel {
+	Silent = 'silent',
+	Errors = 'errors',
+	Verbose = 'verbose',
+	Debug = 'debug',
+}
+
 export interface Config {
 	applyRulesets: string[];
 	applyWorkspaceRulesets: string[];
@@ -19,7 +23,7 @@ export interface Config {
 	ignoreExcludes: boolean;
 	openPreview: boolean;
 	openSideBySide: boolean;
-	outputLevel: TraceLevel;
+	outputLevel: OutputLevel;
 	rulesets: Ruleset[];
 	workspaceRulesets: Ruleset[];
 }

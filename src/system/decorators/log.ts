@@ -1,35 +1,46 @@
-'use strict';
-import { LogCorrelationContext, Logger, TraceLevel } from '../../logger';
-import { Functions } from '../function';
-import { Promises } from '../promise';
-import { Strings } from '../string';
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+import { hrtime } from '@env/hrtime';
+import type { LogScope } from '../../logger';
+import { getLoggableName, Logger, LogLevel } from '../../logger';
+import { getParameters } from '../function';
+import { isPromise } from '../promise';
+import { getDurationMilliseconds } from '../string';
 
 const emptyStr = '';
+const maxSmallIntegerV8 = 2 ** 30; // Max number that can be stored in V8's smis (small integers)
 
-const correlationContext = new Map<number, LogCorrelationContext>();
-let correlationCounter = 0;
+const scopes = new Map<number, LogScope>();
+let scopeCounter = 0;
 
-export function getCorrelationContext() {
-	return correlationContext.get(correlationCounter);
+export function getLogScope(): LogScope | undefined {
+	return scopes.get(scopeCounter);
 }
 
-export function getCorrelationId() {
-	return correlationCounter;
+export function getNewLogScope(prefix: string): LogScope {
+	const scopeId = getNextLogScopeId();
+	return {
+		scopeId: scopeId,
+		prefix: `[${String(scopeId).padStart(5)}] ${prefix}`,
+	};
 }
 
-function getNextCorrelationId() {
-	if (correlationCounter === Number.MAX_SAFE_INTEGER) {
-		correlationCounter = 0;
+export function getLogScopeId(): number {
+	return scopeCounter;
+}
+
+export function getNextLogScopeId(): number {
+	if (scopeCounter === maxSmallIntegerV8) {
+		scopeCounter = 0;
 	}
-	return ++correlationCounter;
+	return ++scopeCounter;
 }
 
-function clearCorrelationContext(correlationId: number) {
-	correlationContext.delete(correlationId);
+function clearLogScope(scopeId: number) {
+	scopes.delete(scopeId);
 }
 
-function setCorrelationContext(correlationId: number, context: LogCorrelationContext) {
-	correlationContext.set(correlationId, context);
+function setLogScope(scopeId: number, scope: LogScope) {
+	scopes.set(scopeId, scope);
 }
 
 export interface LogContext {
@@ -40,6 +51,28 @@ export interface LogContext {
 	prefix: string;
 }
 
+interface LogOptions<T extends (...arg: any) => any> {
+	args?:
+		| false
+		| {
+				0?: ((arg: Parameters<T>[0]) => unknown) | string | false;
+				1?: ((arg: Parameters<T>[1]) => unknown) | string | false;
+				2?: ((arg: Parameters<T>[2]) => unknown) | string | false;
+				3?: ((arg: Parameters<T>[3]) => unknown) | string | false;
+				4?: ((arg: Parameters<T>[4]) => unknown) | string | false;
+				[key: number]: (((arg: any) => unknown) | string | false) | undefined;
+		  };
+	condition?(...args: Parameters<T>): boolean;
+	enter?(...args: Parameters<T>): string;
+	exit?(result: PromiseType<ReturnType<T>>): string;
+	prefix?(context: LogContext, ...args: Parameters<T>): string;
+	sanitize?(key: string, value: any): any;
+	logThreshold?: number;
+	scoped?: boolean;
+	singleLine?: boolean;
+	timed?: boolean;
+}
+
 export const LogInstanceNameFn = Symbol('logInstanceNameFn');
 
 export function logName<T>(fn: (c: T, name: string) => string) {
@@ -48,175 +81,185 @@ export function logName<T>(fn: (c: T, name: string) => string) {
 	};
 }
 
-export function debug<T extends (...arg: any) => any>(
-	options: {
-		args?: false | { [arg: string]: (arg: any) => string | false };
-		condition?(...args: Parameters<T>): boolean;
-		correlate?: boolean;
-		enter?(...args: Parameters<T>): string;
-		exit?(result: PromiseType<ReturnType<T>>): string;
-		prefix?(context: LogContext, ...args: Parameters<T>): string;
-		sanitize?(key: string, value: any): any;
-		singleLine?: boolean;
-		timed?: boolean;
-	} = { timed: true }
-) {
-	return log<T>({ debug: true, ...options });
+export function debug<T extends (...arg: any) => any>(options?: LogOptions<T>) {
+	return log<T>(options, true);
 }
 
 type PromiseType<T> = T extends Promise<infer U> ? U : T;
 
-export function log<T extends (...arg: any) => any>(
-	options: {
-		args?: false | { [arg: number]: (arg: any) => string | false };
-		condition?(...args: Parameters<T>): boolean;
-		correlate?: boolean;
-		debug?: boolean;
-		enter?(...args: Parameters<T>): string;
-		exit?(result: PromiseType<ReturnType<T>>): string;
-		prefix?(context: LogContext, ...args: Parameters<T>): string;
-		sanitize?(key: string, value: any): any;
-		singleLine?: boolean;
-		timed?: boolean;
-	} = { timed: true }
-) {
-	options = { timed: true, ...options };
+export function log<T extends (...arg: any) => any>(options?: LogOptions<T>, debug = false) {
+	let overrides: LogOptions<T>['args'] | undefined;
+	let conditionFn: LogOptions<T>['condition'] | undefined;
+	let enterFn: LogOptions<T>['enter'] | undefined;
+	let exitFn: LogOptions<T>['exit'] | undefined;
+	let prefixFn: LogOptions<T>['prefix'] | undefined;
+	let sanitizeFn: LogOptions<T>['sanitize'] | undefined;
+	let logThreshold = 0;
+	let scoped = false;
+	let singleLine = false;
+	let timed = true;
+	if (options != null) {
+		({
+			args: overrides,
+			condition: conditionFn,
+			enter: enterFn,
+			exit: exitFn,
+			prefix: prefixFn,
+			sanitize: sanitizeFn,
+			logThreshold = 0,
+			scoped = true,
+			singleLine = false,
+			timed = true,
+		} = options);
+	}
 
-	const logFn = (options.debug ? Logger.debug.bind(Logger) : Logger.log.bind(Logger)) as
+	if (logThreshold > 0) {
+		singleLine = true;
+		timed = true;
+	}
+
+	if (timed) {
+		scoped = true;
+	}
+
+	const logFn = (debug ? Logger.debug.bind(Logger) : Logger.log.bind(Logger)) as
 		| typeof Logger.debug
 		| typeof Logger.log;
+	const warnFn = Logger.warn.bind(Logger);
 
-	return (target: any, key: string, descriptor: PropertyDescriptor) => {
+	return (target: any, key: string, descriptor: PropertyDescriptor & Record<string, any>) => {
 		let fn: Function | undefined;
+		let fnKey: string | undefined;
 		if (typeof descriptor.value === 'function') {
 			fn = descriptor.value;
+			fnKey = 'value';
 		} else if (typeof descriptor.get === 'function') {
 			fn = descriptor.get;
+			fnKey = 'get';
 		}
-		if (fn == null) throw new Error('Not supported');
+		if (fn == null || fnKey == null) throw new Error('Not supported');
 
-		const parameters = Functions.getParameters(fn);
+		const parameters = getParameters(fn);
 
-		descriptor.value = function(this: any, ...args: Parameters<T>) {
-			const correlationId = getNextCorrelationId();
+		descriptor[fnKey] = function (this: any, ...args: Parameters<T>) {
+			const scopeId = getNextLogScopeId();
 
 			if (
 				(!Logger.isDebugging &&
-					Logger.level !== TraceLevel.Debug &&
-					!(Logger.level === TraceLevel.Verbose && !options.debug)) ||
-				(typeof options.condition === 'function' && !options.condition(...args))
+					!Logger.enabled(LogLevel.Debug) &&
+					!(Logger.enabled(LogLevel.Info) && !debug)) ||
+				(conditionFn != null && !conditionFn(...args))
 			) {
 				return fn!.apply(this, args);
 			}
 
 			let instanceName: string;
 			if (this != null) {
-				instanceName = Logger.toLoggableName(this);
-				if (this.constructor != null && this.constructor[LogInstanceNameFn]) {
+				instanceName = getLoggableName(this);
+				if (this.constructor?.[LogInstanceNameFn]) {
 					instanceName = target.constructor[LogInstanceNameFn](this, instanceName);
 				}
 			} else {
 				instanceName = emptyStr;
 			}
 
-			let { correlate } = options;
-			if (!correlate && options.timed) {
-				correlate = true;
-			}
-
-			let prefix = `${correlate ? `[${correlationId.toString(16)}] ` : emptyStr}${
+			let prefix = `${scoped ? `[${scopeId.toString(16).padStart(5)}] ` : emptyStr}${
 				instanceName ? `${instanceName}.` : emptyStr
 			}${key}`;
 
-			if (options.prefix != null) {
-				prefix = options.prefix(
+			if (prefixFn != null) {
+				prefix = prefixFn(
 					{
-						id: correlationId,
+						id: scopeId,
 						instance: this,
 						instanceName: instanceName,
 						name: key,
-						prefix: prefix
+						prefix: prefix,
 					},
-					...args
+					...args,
 				);
 			}
 
-			let correlationContext: LogCorrelationContext | undefined;
-			if (correlate) {
-				correlationContext = { correlationId: correlationId, prefix: prefix };
-				setCorrelationContext(correlationId, correlationContext);
+			let scope: LogScope | undefined;
+			if (scoped) {
+				scope = { scopeId: scopeId, prefix: prefix };
+				setLogScope(scopeId, scope);
 			}
 
-			const enter = options.enter != null ? options.enter(...args) : emptyStr;
+			const enter = enterFn != null ? enterFn(...args) : emptyStr;
 
 			let loggableParams: string;
-			if (options.args === false || args.length === 0) {
+			if (overrides === false || args.length === 0) {
 				loggableParams = emptyStr;
 
-				if (!options.singleLine) {
+				if (!singleLine) {
 					logFn(`${prefix}${enter}`);
 				}
 			} else {
-				const argFns = typeof options.args === 'object' ? options.args : undefined;
-				let argFn;
-				let loggable;
-				loggableParams = args
-					.map((v: any, index: number) => {
-						const p = parameters[index];
+				loggableParams = '';
 
-						argFn = argFns !== undefined ? argFns[index] : undefined;
-						if (argFn !== undefined) {
-							loggable = argFn(v);
-							if (loggable === false) return undefined;
-						} else {
-							loggable = Logger.toLoggable(v, options.sanitize);
+				let paramOverride;
+				let paramIndex = -1;
+				let paramName;
+				let paramLogValue;
+				let paramValue;
+
+				for (paramValue of args as unknown[]) {
+					paramName = parameters[++paramIndex];
+
+					paramOverride = overrides?.[paramIndex];
+					if (paramOverride != null) {
+						if (typeof paramOverride === 'boolean') continue;
+
+						if (loggableParams.length > 0) {
+							loggableParams += ', ';
 						}
 
-						return p ? `${p}=${loggable}` : loggable;
-					})
-					.filter(Boolean)
-					.join(', ');
+						if (typeof paramOverride === 'string') {
+							loggableParams += paramOverride;
+							continue;
+						}
 
-				if (!options.singleLine) {
-					if (!options.debug) {
-						Logger.logWithDebugParams(`${prefix}${enter}`, loggableParams);
+						paramLogValue = String(paramOverride(paramValue));
 					} else {
-						logFn(`${prefix}${enter}`, loggableParams);
+						if (loggableParams.length > 0) {
+							loggableParams += ', ';
+						}
+
+						paramLogValue = Logger.toLoggable(paramValue, sanitizeFn);
 					}
+
+					loggableParams += paramName ? `${paramName}=${paramLogValue}` : paramLogValue;
+				}
+
+				if (!singleLine) {
+					logFn(
+						`${prefix}${enter}${
+							loggableParams && (debug || Logger.enabled(LogLevel.Debug) || Logger.isDebugging)
+								? `(${loggableParams})`
+								: emptyStr
+						}`,
+					);
 				}
 			}
 
-			if (options.singleLine || options.timed || options.exit != null) {
-				const start = options.timed ? process.hrtime() : undefined;
+			if (singleLine || timed || exitFn != null) {
+				const start = timed ? hrtime() : undefined;
 
 				const logError = (ex: Error) => {
-					const timing =
-						start !== undefined ? ` \u2022 ${Strings.getDurationMilliseconds(start)} ms` : emptyStr;
-					if (options.singleLine) {
+					const timing = start !== undefined ? ` \u2022 ${getDurationMilliseconds(start)} ms` : emptyStr;
+					if (singleLine) {
 						Logger.error(
 							ex,
-							`${prefix}${enter}`,
-							`failed${
-								correlationContext !== undefined && correlationContext.exitDetails
-									? correlationContext.exitDetails
-									: emptyStr
-							}${timing}`,
-							loggableParams
+							`${prefix}${enter}${loggableParams ? `(${loggableParams})` : emptyStr}`,
+							`failed${scope?.exitDetails ? scope.exitDetails : emptyStr}${timing}`,
 						);
 					} else {
-						Logger.error(
-							ex,
-							prefix,
-							`failed${
-								correlationContext !== undefined && correlationContext.exitDetails
-									? correlationContext.exitDetails
-									: emptyStr
-							}${timing}`
-						);
+						Logger.error(ex, prefix, `failed${scope?.exitDetails ? scope.exitDetails : emptyStr}${timing}`);
 					}
 
-					if (correlate) {
-						clearCorrelationContext(correlationId);
+					if (scoped) {
+						clearLogScope(scopeId);
 					}
 				};
 
@@ -229,12 +272,27 @@ export function log<T extends (...arg: any) => any>(
 				}
 
 				const logResult = (r: any) => {
-					const timing =
-						start !== undefined ? ` \u2022 ${Strings.getDurationMilliseconds(start)} ms` : emptyStr;
+					let duration: number | undefined;
+					let exitLogFn;
+					let timing;
+					if (start != null) {
+						duration = getDurationMilliseconds(start);
+						if (duration > Logger.slowCallWarningThreshold) {
+							exitLogFn = warnFn;
+							timing = ` \u2022 ${duration} ms (slow)`;
+						} else {
+							exitLogFn = logFn;
+							timing = ` \u2022 ${duration} ms`;
+						}
+					} else {
+						timing = emptyStr;
+						exitLogFn = logFn;
+					}
+
 					let exit;
-					if (options.exit != null) {
+					if (exitFn != null) {
 						try {
-							exit = options.exit(r);
+							exit = exitFn(r);
 						} catch (ex) {
 							exit = `@log.exit error: ${ex}`;
 						}
@@ -242,42 +300,32 @@ export function log<T extends (...arg: any) => any>(
 						exit = 'completed';
 					}
 
-					if (options.singleLine) {
-						if (!options.debug) {
-							Logger.logWithDebugParams(
-								`${prefix}${enter} ${exit}${
-									correlationContext !== undefined && correlationContext.exitDetails
-										? correlationContext.exitDetails
+					if (singleLine) {
+						if (logThreshold === 0 || duration! > logThreshold) {
+							exitLogFn(
+								`${prefix}${enter}${
+									loggableParams && (debug || Logger.enabled(LogLevel.Debug) || Logger.isDebugging)
+										? `(${loggableParams})`
 										: emptyStr
-								}${timing}`,
-								loggableParams
-							);
-						} else {
-							logFn(
-								`${prefix}${enter} ${exit}${
-									correlationContext !== undefined && correlationContext.exitDetails
-										? correlationContext.exitDetails
-										: emptyStr
-								}${timing}`,
-								loggableParams
+								} ${exit}${scope?.exitDetails ? scope.exitDetails : emptyStr}${timing}`,
 							);
 						}
 					} else {
-						logFn(
-							`${prefix} ${exit}${
-								correlationContext !== undefined && correlationContext.exitDetails
-									? correlationContext.exitDetails
+						exitLogFn(
+							`${prefix}${
+								loggableParams && (debug || Logger.enabled(LogLevel.Debug) || Logger.isDebugging)
+									? `(${loggableParams})`
 									: emptyStr
-							}${timing}`
+							} ${exit}${scope?.exitDetails ? scope.exitDetails : emptyStr}${timing}`,
 						);
 					}
 
-					if (correlate) {
-						clearCorrelationContext(correlationId);
+					if (scoped) {
+						clearLogScope(scopeId);
 					}
 				};
 
-				if (result != null && Promises.is(result)) {
+				if (result != null && isPromise(result)) {
 					const promise = result.then(logResult);
 					promise.catch(logError);
 				} else {
