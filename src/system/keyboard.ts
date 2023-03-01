@@ -12,7 +12,17 @@ export declare interface KeyCommand {
 const keyNoopCommand = Object.create(null) as KeyCommand;
 export { keyNoopCommand as KeyNoopCommand };
 
-export const keys = ['left', 'right', ',', '.', 'escape'] as const;
+export const keys = [
+	'left',
+	'alt+left',
+	'ctrl+left',
+	'right',
+	'alt+right',
+	'ctrl+right',
+	'alt+enter',
+	'ctrl+enter',
+	'escape',
+] as const;
 export type Keys = (typeof keys)[number];
 
 export type KeyMapping = { [K in Keys]?: KeyCommand | (() => Promise<KeyCommand>) };

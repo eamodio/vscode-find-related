@@ -1,9 +1,9 @@
 import type { TextDocument, TextDocumentShowOptions, TextEditor, Uri } from 'vscode';
 import { commands, Disposable, ViewColumn, window, workspace } from 'vscode';
-import { configuration } from './system/configuration';
 import type { Container } from './container';
 import { showRelatedPicker } from './quickPicks/relatedPicker';
 import type { IRule } from './rule';
+import { configuration } from './system/configuration';
 import type { Command } from './system/decorators/command';
 import { createCommandDecorator } from './system/decorators/command';
 import { Logger } from './system/logger';

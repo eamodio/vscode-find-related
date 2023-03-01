@@ -73,8 +73,26 @@
 						],
 						"items": {
 							"type": "string",
-							"uniqueItems": true
+							"enum": [
+								"aspnet",
+								"aspnet-mvc",
+								"aurelia",
+								"c/c++",
+								"csharp",
+								"minified",
+								"xaml"
+							],
+							"enumDescriptions": [
+								"Applies rules for ASP.NET projects",
+								"Applies rules for ASP.NET MVC projects",
+								"Applies rules for Aurelia projects",
+								"Applies rules for C/C++ projects",
+								"Applies rules for C# projects",
+								"Applies rules for minified CSS/JS files",
+								"Applies rules for XAML files"
+							]
 						},
+						"uniqueItems": true,
 						"markdownDescription": "Specifies the rulesets to use to find related files",
 						"scope": "window",
 						"order": 10
@@ -226,11 +244,18 @@
 					},
 					"findrelated.outputLevel": {
 						"type": "string",
-						"default": "silent",
+						"default": "errors",
 						"enum": [
 							"silent",
 							"errors",
-							"verbose"
+							"verbose",
+							"debug"
+						],
+						"enumDescriptions": [
+							"Logs nothing",
+							"Logs only errors",
+							"Logs all errors, warnings, and messages",
+							"Logs all errors, warnings, and messages with extra context useful for debugging"
 						],
 						"markdownDescription": "Specifies how much (if any) output will be sent to the FindRelated output channel",
 						"scope": "window",
@@ -253,9 +278,51 @@
 				"when": "editorFocus"
 			},
 			{
+				"command": "findrelated.key.left",
+				"key": "left",
+				"when": "findrelated:key:left"
+			},
+			{
+				"command": "findrelated.key.alt+left",
+				"key": "alt+left",
+				"when": "findrelated:key:alt+left"
+			},
+			{
+				"command": "findrelated.key.ctrl+left",
+				"key": "ctrl+left",
+				"mac": "cmd+left",
+				"when": "findrelated:key:ctrl+left"
+			},
+			{
 				"command": "findrelated.key.right",
-				"key": "alt+right",
+				"key": "right",
 				"when": "findrelated:key:right"
+			},
+			{
+				"command": "findrelated.key.alt+right",
+				"key": "alt+right",
+				"when": "findrelated:key:alt+right"
+			},
+			{
+				"command": "findrelated.key.ctrl+right",
+				"key": "ctrl+right",
+				"mac": "cmd+right",
+				"when": "findrelated:key:ctrl+right"
+			},
+			{
+				"command": "findrelated.key.alt+enter",
+				"key": "alt+enter",
+				"when": "findrelated:key:alt+enter"
+			},
+			{
+				"command": "findrelated.key.ctrl+enter",
+				"key": "ctrl+enter",
+				"when": "findrelated:key:ctrl+enter"
+			},
+			{
+				"command": "findrelated.key.escape",
+				"key": "escape",
+				"when": "findrelated:key:escape && editorTextFocus && !findWidgetVisible && !quickFixWidgetVisible && !renameInputVisible && !suggestWidgetVisible && !isInEmbeddedEditor"
 			}
 		]
 	},
