@@ -1,9 +1,7 @@
-export * from './config';
-
 import type { ConfigurationChangeEvent, ConfigurationScope, Event, ExtensionContext } from 'vscode';
 import { ConfigurationTarget, EventEmitter, workspace } from 'vscode';
-import type { Config } from './config';
-import { areEqual } from './system/object';
+import type { Config } from '../config';
+import { areEqual } from './object';
 
 const configPrefix = 'findrelated';
 
@@ -16,6 +14,7 @@ interface ConfigurationOverrides {
 export class Configuration {
 	static configure(context: ExtensionContext): void {
 		context.subscriptions.push(
+			// eslint-disable-next-line @typescript-eslint/no-use-before-define
 			workspace.onDidChangeConfiguration(configuration.onConfigurationChanged, configuration),
 		);
 	}
@@ -121,7 +120,7 @@ export class Configuration {
 	}
 
 	isUnset<T extends ConfigPath>(section: T, scope?: ConfigurationScope | null): boolean {
-		const inspect = configuration.inspect(section, scope)!;
+		const inspect = this.inspect(section, scope)!;
 		if (inspect.workspaceFolderValue !== undefined) return false;
 		if (inspect.workspaceValue !== undefined) return false;
 		if (inspect.globalValue !== undefined) return false;
@@ -134,7 +133,7 @@ export class Configuration {
 		to: T,
 		options: { fallbackValue?: ConfigPathValue<T>; migrationFn?(value: any): ConfigPathValue<T> },
 	): Promise<boolean> {
-		const inspection = configuration.inspect(from as any);
+		const inspection = this.inspect(from as any);
 		if (inspection === undefined) return false;
 
 		let migrated = false;
@@ -203,10 +202,10 @@ export class Configuration {
 		to: T,
 		options: { migrationFn?(value: any): ConfigPathValue<T> },
 	): Promise<void> {
-		const fromInspection = configuration.inspect(from as any);
+		const fromInspection = this.inspect(from as any);
 		if (fromInspection === undefined) return;
 
-		const toInspection = configuration.inspect(to);
+		const toInspection = this.inspect(to);
 		if (fromInspection.globalValue !== undefined) {
 			if (toInspection === undefined || toInspection.globalValue === undefined) {
 				await this.update(
@@ -293,24 +292,24 @@ export class Configuration {
 	}
 
 	updateEffective<T extends ConfigPath>(section: T, value: ConfigPathValue<T> | undefined): Thenable<void> {
-		const inspect = configuration.inspect(section)!;
+		const inspect = this.inspect(section)!;
 		if (inspect.workspaceFolderValue !== undefined) {
 			if (value === inspect.workspaceFolderValue) return Promise.resolve(undefined);
 
-			return configuration.update(section, value, ConfigurationTarget.WorkspaceFolder);
+			return this.update(section, value, ConfigurationTarget.WorkspaceFolder);
 		}
 
 		if (inspect.workspaceValue !== undefined) {
 			if (value === inspect.workspaceValue) return Promise.resolve(undefined);
 
-			return configuration.update(section, value, ConfigurationTarget.Workspace);
+			return this.update(section, value, ConfigurationTarget.Workspace);
 		}
 
 		if (inspect.globalValue === value || (inspect.globalValue === undefined && value === inspect.defaultValue)) {
 			return Promise.resolve(undefined);
 		}
 
-		return configuration.update(
+		return this.update(
 			section,
 			areEqual(value, inspect.defaultValue) ? undefined : value,
 			ConfigurationTarget.Global,
@@ -328,9 +327,9 @@ type SubPath<T, Key extends keyof T> = Key extends string
 		: never
 	: never;
 
-type Path<T> = SubPath<T, keyof T> | keyof T;
+export type Path<T> = SubPath<T, keyof T> | keyof T;
 
-type PathValue<T, P extends Path<T>> = P extends `${infer Key}.${infer Rest}`
+export type PathValue<T, P extends Path<T>> = P extends `${infer Key}.${infer Rest}`
 	? Key extends keyof T
 		? Rest extends Path<T[Key]>
 			? PathValue<T[Key], Rest>
@@ -340,5 +339,5 @@ type PathValue<T, P extends Path<T>> = P extends `${infer Key}.${infer Rest}`
 	? T[P]
 	: never;
 
-type ConfigPath = Path<Config>;
-type ConfigPathValue<P extends ConfigPath> = PathValue<Config, P>;
+export type ConfigPath = Path<Config>;
+export type ConfigPathValue<P extends ConfigPath> = PathValue<Config, P>;

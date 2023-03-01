@@ -1,6 +1,6 @@
 import type { QuickPickItem } from 'vscode';
 import { commands } from 'vscode';
-import type { Keys } from '../keyboard';
+import type { Keys } from '../system/keyboard';
 
 declare module 'vscode' {
 	interface QuickPickItem {
@@ -8,56 +8,6 @@ declare module 'vscode' {
 		onDidPressKey?(key: Keys): Promise<void>;
 	}
 }
-
-// export function showQuickPickProgress(
-// 	message: string,
-// 	mapping?: KeyMapping,
-// 	delay: boolean = false,
-// ): CancellationTokenSource {
-// 	const cancellation = new CancellationTokenSource();
-
-// 	if (delay) {
-// 		// eslint-disable-next-line prefer-const
-// 		let disposable: Disposable;
-// 		const timer = setTimeout(() => {
-// 			disposable?.dispose();
-// 			void _showQuickPickProgress(message, cancellation, mapping);
-// 		}, 250);
-// 		disposable = cancellation.token.onCancellationRequested(() => clearTimeout(timer));
-// 	} else {
-// 		void _showQuickPickProgress(message, cancellation, mapping);
-// 	}
-
-// 	return cancellation;
-// }
-
-// async function _showQuickPickProgress(message: string, cancellation: CancellationTokenSource, mapping?: KeyMapping) {
-// 	const scope = mapping && (await Container.keyboard.beginScope(mapping));
-
-// 	try {
-// 		await window.showQuickPick(
-// 			_getInfiniteCancellablePromise(cancellation),
-// 			{
-// 				placeHolder: message,
-// 			},
-// 			cancellation.token,
-// 		);
-// 	} catch (ex) {
-// 		// Not sure why this throws
-// 	} finally {
-// 		cancellation.cancel();
-// 		scope?.dispose();
-// 	}
-// }
-
-// function _getInfiniteCancellablePromise(cancellation: CancellationTokenSource) {
-// 	return new Promise<QuickPickItem[]>((resolve, reject) => {
-// 		const disposable = cancellation.token.onCancellationRequested(() => {
-// 			disposable.dispose();
-// 			resolve([]);
-// 		});
-// 	});
-// }
 
 export class CommandQuickPickItem<Arguments extends any[] = any[]> implements QuickPickItem {
 	static fromCommand<T>(label: string, command: string, args?: T): CommandQuickPickItem;

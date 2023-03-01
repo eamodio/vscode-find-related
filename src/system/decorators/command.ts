@@ -1,8 +1,8 @@
 import type { MessageItem } from 'vscode';
 import { window } from 'vscode';
-import { Logger, LogLevel } from '../../logger';
-
-const commandPrefix = 'findrelated';
+import { commandPrefix } from '../../constants';
+import { Logger } from '../logger';
+import { LogLevel } from '../logger.constants';
 
 export function createCommandDecorator(registry: Command[]): (command: string, options?: CommandOptions) => Function {
 	return (command: string, options?: CommandOptions) => _command(registry, command, options);

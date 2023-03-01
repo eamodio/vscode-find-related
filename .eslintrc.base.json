@@ -12,11 +12,12 @@
 	],
 	"parser": "@typescript-eslint/parser",
 	"parserOptions": {
-		"ecmaVersion": 2019,
+		"ecmaVersion": 2022,
 		"sourceType": "module",
 		"ecmaFeatures": {
 			"impliedStrict": true
-		}
+		},
+		"project": true
 	},
 	"plugins": ["anti-trojan-source", "import", "@typescript-eslint"],
 	"reportUnusedDisableDirectives": true,
@@ -45,7 +46,6 @@
 		"no-floating-decimal": "error",
 		"no-implicit-coercion": "error",
 		"no-implied-eval": "error",
-		// Turn off until fix for: https://github.com/typescript-eslint/typescript-eslint/issues/239
 		"no-inner-declarations": "off",
 		"no-lone-blocks": "error",
 		"no-lonely-if": "error",
@@ -56,8 +56,6 @@
 			"error",
 			{
 				"paths": [
-					"lodash",
-					"lodash-es",
 					// Disallow node imports below
 					"assert",
 					"buffer",
@@ -114,6 +112,7 @@
 		"no-throw-literal": "error",
 		"no-unmodified-loop-condition": "warn",
 		"no-unneeded-ternary": "error",
+		"no-unused-expressions": "error",
 		"no-use-before-define": "off",
 		"no-useless-call": "error",
 		"no-useless-catch": "error",
@@ -130,16 +129,16 @@
 			"error",
 			{
 				"destructuring": "all",
-				"ignoreReadBeforeAssign": false
+				"ignoreReadBeforeAssign": true
 			}
 		],
 		"prefer-numeric-literals": "error",
 		"prefer-object-spread": "error",
+		"prefer-promise-reject-errors": ["error", { "allowEmptyReject": true }],
 		"prefer-rest-params": "error",
 		"prefer-spread": "error",
 		"prefer-template": "error",
 		"quotes": ["error", "single", { "avoidEscape": true, "allowTemplateLiterals": true }],
-		// Turn off until fix for: https://github.com/eslint/eslint/issues/11899
 		"require-atomic-updates": "off",
 		"semi": ["error", "always"],
 		"semi-style": ["error", "last"],
@@ -153,23 +152,26 @@
 			}
 		],
 		"yoda": "error",
-		"import/export": "off",
+		"import/consistent-type-specifier-style": ["error", "prefer-top-level"],
 		"import/extensions": ["error", "never"],
-		"import/named": "off",
-		"import/namespace": "off",
 		"import/newline-after-import": "warn",
+		"import/no-absolute-path": "error",
 		"import/no-cycle": "off",
 		"import/no-default-export": "error",
-		"import/no-duplicates": "error",
+		"import/no-duplicates": ["error", { "prefer-inline": false }],
 		"import/no-dynamic-require": "error",
 		"import/no-self-import": "error",
 		"import/no-unresolved": ["warn", { "ignore": ["vscode", "@env"] }],
+		"import/no-useless-path-segments": "error",
 		"import/order": [
 			"warn",
 			{
-				"alphabetize": { "order": "asc", "caseInsensitive": true },
-				"groups": ["builtin", "external", "internal", ["parent", "sibling", "index"]],
-				// "groups": ["builtin", "external", "internal", ["index", "sibling", "parent"]],
+				"alphabetize": {
+					"order": "asc",
+					"orderImportKind": "asc",
+					"caseInsensitive": true
+				},
+				"groups": ["builtin", "external", "internal", "parent", "sibling", "index"],
 				"newlines-between": "never"
 			}
 		],
@@ -275,7 +277,7 @@
 		"@typescript-eslint/no-inferrable-types": ["warn", { "ignoreParameters": true, "ignoreProperties": true }],
 		"@typescript-eslint/no-meaningless-void-operator": "error",
 		"@typescript-eslint/no-misused-promises": ["error", { "checksVoidReturn": false }],
-		"@typescript-eslint/no-namespace": "off", // TODO: Should aim to enable this
+		"@typescript-eslint/no-namespace": "error",
 		"@typescript-eslint/no-non-null-assertion": "off",
 		"@typescript-eslint/no-non-null-asserted-nullish-coalescing": "error",
 		"@typescript-eslint/no-throw-literal": "error",
@@ -295,6 +297,7 @@
 				"varsIgnorePattern": "^_$"
 			}
 		],
+		"@typescript-eslint/no-use-before-define": ["error", { "functions": false, "classes": false }],
 		"@typescript-eslint/non-nullable-type-assertion-style": "error",
 		"@typescript-eslint/prefer-for-of": "warn",
 		"@typescript-eslint/prefer-includes": "warn",

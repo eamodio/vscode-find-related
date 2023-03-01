@@ -1,8 +1,8 @@
 import type { TextDocument, Uri } from 'vscode';
-import type { RuleDefinition } from './configuration';
-import { configuration } from './configuration';
-import { Logger } from './logger';
+import type { RuleDefinition } from './config';
 import { findFiles } from './rulesProvider';
+import { configuration } from './system/configuration';
+import { Logger } from './system/logger';
 // import * as glob from 'glob';
 
 const tokenReplacer = /(\$([0-9]))/g;

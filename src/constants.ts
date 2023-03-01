@@ -1,3 +1,5 @@
+export const commandPrefix = 'findrelated';
+
 export const enum CharCode {
 	/**
 	 * The `/` character.

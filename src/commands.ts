@@ -1,12 +1,12 @@
 import type { TextDocument, TextDocumentShowOptions, TextEditor, Uri } from 'vscode';
 import { commands, Disposable, ViewColumn, window, workspace } from 'vscode';
-import { configuration } from './configuration';
+import { configuration } from './system/configuration';
 import type { Container } from './container';
-import { Logger } from './logger';
-import { RelatedPicker } from './quickPicks/relatedPicker';
+import { showRelatedPicker } from './quickPicks/relatedPicker';
 import type { IRule } from './rule';
 import type { Command } from './system/decorators/command';
 import { createCommandDecorator } from './system/decorators/command';
+import { Logger } from './system/logger';
 import { basename, dirname, normalizePath } from './system/path';
 
 const registrableCommands: Command[] = [];
@@ -35,7 +35,7 @@ export class Commands implements Disposable {
 
 		const fileName = normalizePath(workspace.asRelativePath(editor.document.uri, false));
 
-		const pick = await RelatedPicker.show(
+		const pick = await showRelatedPicker(
 			this.container,
 			async () => {
 				const activeRules = await this.container.rules.provideRules(fileName);

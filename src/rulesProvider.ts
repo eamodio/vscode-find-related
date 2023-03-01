@@ -1,12 +1,12 @@
 import type { CancellationToken, ConfigurationChangeEvent, GlobPattern, TextDocument } from 'vscode';
 import { Disposable, RelativePattern, Uri, workspace } from 'vscode';
-import type { RuleDefinition, Ruleset } from './configuration';
-import { configuration } from './configuration';
+import type { RuleDefinition, Ruleset } from './config';
 import type { Container } from './container';
-import { Logger } from './logger';
 import type { DynamicRule, IRule } from './rule';
 import { isDynamicRule, Rule } from './rule';
 import { union } from './system/array';
+import { configuration } from './system/configuration';
+import { Logger } from './system/logger';
 
 const textDecoder = new TextDecoder('utf8');
 

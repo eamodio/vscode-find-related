@@ -1,8 +1,9 @@
 import { commands, Disposable } from 'vscode';
-import { ContextKeys } from './constants';
-import { setContext } from './context';
+import { commandPrefix, ContextKeys } from '../constants';
+import { setContext } from '../context';
+import { log } from './decorators/log';
 import { Logger } from './logger';
-import { getLogScope, log } from './system/decorators/log';
+import { getLogScope } from './logger.scope';
 
 export declare interface KeyCommand {
 	onDidPressKey?(key: Keys): void | Promise<void>;
@@ -12,7 +13,7 @@ const keyNoopCommand = Object.create(null) as KeyCommand;
 export { keyNoopCommand as KeyNoopCommand };
 
 export const keys = ['left', 'right', ',', '.', 'escape'] as const;
-export type Keys = typeof keys[number];
+export type Keys = (typeof keys)[number];
 
 export type KeyMapping = { [K in Keys]?: KeyCommand | (() => Promise<KeyCommand>) };
 type IndexableKeyMapping = KeyMapping & {
@@ -142,7 +143,7 @@ export class Keyboard implements Disposable {
 
 	constructor() {
 		const subscriptions = keys.map(key =>
-			commands.registerCommand(`findrelated.key.${key}`, () => this.execute(key), this),
+			commands.registerCommand(`${commandPrefix}.key.${key}`, () => this.execute(key), this),
 		);
 		this._disposable = Disposable.from(...subscriptions);
 	}

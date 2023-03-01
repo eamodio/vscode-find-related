@@ -5,8 +5,8 @@ export { basename, dirname, extname, join as joinPaths } from 'path';
 
 const slash = 47; //slash;
 
-const pathNormalizeRegex = /\\/g;
 const driveLetterNormalizeRegex = /(?<=^\/?)([A-Z])(?=:\/)/;
+const pathNormalizeRegex = /\\/g;
 
 export function normalizePath(path: string): string {
 	if (!path) return path;

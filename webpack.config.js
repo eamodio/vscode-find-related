@@ -2,16 +2,16 @@
 /** @typedef {import('webpack').Configuration} WebpackConfig **/
 
 const { spawnSync } = require('child_process');
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const CircularDependencyPlugin = require('circular-dependency-plugin');
 const { CleanWebpackPlugin: CleanPlugin } = require('clean-webpack-plugin');
-const ForkTsCheckerPlugin = require('fork-ts-checker-webpack-plugin');
 const esbuild = require('esbuild');
+const { EsbuildPlugin } = require('esbuild-loader');
+const ForkTsCheckerPlugin = require('fork-ts-checker-webpack-plugin');
 const fs = require('fs');
-const JSON5 = require('json5');
 const path = require('path');
 const TerserPlugin = require('terser-webpack-plugin');
-const { WebpackError, webpack, optimize } = require('webpack');
-const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
+const { optimize, WebpackError } = require('webpack');
 
 module.exports =
 	/**
@@ -26,6 +26,7 @@ module.exports =
 			analyzeBundle: false,
 			analyzeDeps: false,
 			esbuild: true,
+			esbuildMinify: false,
 			...env,
 		};
 
@@ -50,11 +51,9 @@ function getExtensionConfig(target, mode, env) {
 				enabled: true,
 				files: 'src/**/*.ts?(x)',
 				options: {
-					// cache: true,
-					// cacheLocation: path.join(
-					// 	__dirname,
-					// 	target === 'webworker' ? '.eslintcache.browser' : '.eslintcache',
-					// ),
+					cache: true,
+					cacheLocation: path.join(__dirname, '.eslintcache/', target === 'webworker' ? 'browser/' : ''),
+					cacheStrategy: 'content',
 					fix: mode !== 'production',
 					overrideConfigFile: path.join(
 						__dirname,
@@ -90,7 +89,20 @@ function getExtensionConfig(target, mode, env) {
 	}
 
 	if (env.analyzeBundle) {
-		plugins.push(new BundleAnalyzerPlugin({ analyzerPort: 'auto' }));
+		const out = path.join(__dirname, 'out');
+		if (!fs.existsSync(out)) {
+			fs.mkdirSync(out);
+		}
+
+		plugins.push(
+			new BundleAnalyzerPlugin({
+				analyzerMode: 'static',
+				generateStatsFile: true,
+				openAnalyzer: false,
+				reportFilename: path.join(out, `extension-${target}-bundle-report.html`),
+				statsFilename: path.join(out, 'stats.json'),
+			}),
+		);
 	}
 
 	return {
@@ -102,42 +114,43 @@ function getExtensionConfig(target, mode, env) {
 		target: target,
 		devtool: mode === 'production' ? false : 'source-map',
 		output: {
-			path: target === 'webworker' ? path.join(__dirname, 'dist', 'browser') : path.join(__dirname, 'dist'),
-			libraryTarget: 'commonjs2',
-			filename: 'find-related.js',
 			chunkFilename: 'feature-[name].js',
+			filename: 'find-related.js',
+			libraryTarget: 'commonjs2',
+			path: target === 'webworker' ? path.join(__dirname, 'dist', 'browser') : path.join(__dirname, 'dist'),
 		},
 		optimization: {
 			minimizer: [
-				new TerserPlugin(
-					env.esbuild
-						? {
-								minify: TerserPlugin.esbuildMinify,
-								terserOptions: {
-									// @ts-ignore
-									drop: ['debugger'],
-									format: 'cjs',
-									minify: true,
-									treeShaking: true,
-									// Keep the class names otherwise @log won't provide a useful name
-									keepNames: true,
-									target: 'es2020',
-								},
-						  }
-						: {
-								extractComments: false,
-								parallel: true,
-								terserOptions: {
-									compress: {
-										drop_debugger: true,
-									},
+				env.esbuildMinify
+					? new EsbuildPlugin({
+							drop: ['debugger'],
+							format: 'cjs',
+							// Keep the class names otherwise @log won't provide a useful name
+							keepNames: true,
+							legalComments: 'none',
+							minify: true,
+							target: 'es2022',
+							treeShaking: true,
+					  })
+					: new TerserPlugin({
+							extractComments: false,
+							parallel: true,
+							terserOptions: {
+								compress: {
+									drop_debugger: true,
 									ecma: 2020,
-									// Keep the class names otherwise @log won't provide a useful name
-									keep_classnames: true,
 									module: true,
 								},
-						  },
-				),
+								ecma: 2020,
+								format: {
+									comments: false,
+									ecma: 2020,
+								},
+								// Keep the class names otherwise @log won't provide a useful name
+								keep_classnames: true,
+								module: true,
+							},
+					  }),
 			],
 			splitChunks:
 				target === 'webworker'
@@ -164,14 +177,12 @@ function getExtensionConfig(target, mode, env) {
 						? {
 								loader: 'esbuild-loader',
 								options: {
+									format: 'esm',
 									implementation: esbuild,
-									loader: 'tsx',
-									target: ['es2020', 'chrome91', 'node14.16'],
-									tsconfigRaw: resolveTSConfig(
-										path.join(
-											__dirname,
-											target === 'webworker' ? 'tsconfig.browser.json' : 'tsconfig.json',
-										),
+									target: ['es2022', 'chrome102', 'node16.14.2'],
+									tsconfig: path.join(
+										__dirname,
+										target === 'webworker' ? 'tsconfig.browser.json' : 'tsconfig.json',
 									),
 								},
 						  }
@@ -201,27 +212,22 @@ function getExtensionConfig(target, mode, env) {
 			extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
 		},
 		plugins: plugins,
-		infrastructureLogging: {
-			level: 'log', // enables logging required for problem matchers
+		infrastructureLogging:
+			mode === 'production'
+				? undefined
+				: {
+						level: 'log', // enables logging required for problem matchers
+				  },
+		stats: {
+			preset: 'errors-warnings',
+			assets: true,
+			assetsSort: 'name',
+			assetsSpace: 100,
+			colors: true,
+			env: true,
+			errorsCount: true,
+			warningsCount: true,
+			timings: true,
 		},
-		stats: 'errors-warnings',
 	};
-}
-
-/**
- * @param { string } configFile
- * @returns { string }
- */
-function resolveTSConfig(configFile) {
-	const result = spawnSync('yarn', ['tsc', `-p ${configFile}`, '--showConfig'], {
-		cwd: __dirname,
-		encoding: 'utf8',
-		shell: true,
-	});
-
-	const data = result.stdout;
-	const start = data.indexOf('{');
-	const end = data.lastIndexOf('}') + 1;
-	const json = JSON5.parse(data.substring(start, end));
-	return json;
 }

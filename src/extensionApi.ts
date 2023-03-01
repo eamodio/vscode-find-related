@@ -1,5 +1,5 @@
 import type { Disposable } from 'vscode';
-import type { RuleDefinition } from './configuration';
+import type { RuleDefinition } from './config';
 import type { Container } from './container';
 import type { DynamicRule } from './rule';
 
