@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ### Added
 
 - Adds support for VS Code on the Web (vscode.dev / github.dev)
+- Adds Elixir and Phoenix framework rulesets &mdash; thanks to [PR #37](https://github.com/eamodio/vscode-find-related/pull/37) by tpaktop ([@Maxim-Filimonov](https://github.com/Maxim-Filimonov))
 - Adds workspace trust support &mdash; thanks to [PR #36](https://github.com/eamodio/vscode-find-related/pull/36) by Alessandro Fragnani ([@alefragnani](https://github.com/alefragnani))
 
 ### Fixed
