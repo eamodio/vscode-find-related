@@ -275,7 +275,7 @@
 			{
 				"command": "findrelated.show",
 				"key": "alt+r",
-				"when": "editorFocus"
+				"when": "editorTextFocus"
 			},
 			{
 				"command": "findrelated.key.left",
