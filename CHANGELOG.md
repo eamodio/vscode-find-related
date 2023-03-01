@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- Adds support for VS Code on the Web (vscode.dev / github.dev)
+- Adds workspace trust support &mdash; thanks to [PR #36](https://github.com/eamodio/vscode-find-related/pull/36) by Alessandro Fragnani ([@alefragnani](https://github.com/alefragnani))
+
+### Fixed
+
+- Fixes [#45](https://github.com/eamodio/vscode-find-related/issues/45) - Change keybinding condition
+
 ## [0.9.0] - 2019-10-20
 
 ### Added
