@@ -1,11 +1,16 @@
 import type { ExtensionContext } from 'vscode';
-import { ExtensionMode, Uri, window } from 'vscode';
+import { version as codeVersion, env, ExtensionMode, Uri, window } from 'vscode';
+import { isWeb } from '@env/platform';
 import { fromOutputLevel } from './config';
 import { Container } from './container';
 import { Configuration, configuration } from './system/configuration';
 import { Logger } from './system/logger';
+import { satisfies } from './system/version';
 
 export function activate(context: ExtensionContext) {
+	const extensionVersion: string = context.extension.packageJSON.version;
+	const prerelease = satisfies(extensionVersion, '> 2023.0.0');
+
 	Logger.configure(
 		{
 			name: 'Find Related',
@@ -19,6 +24,12 @@ export function activate(context: ExtensionContext) {
 		},
 		fromOutputLevel(configuration.get('outputLevel')),
 		context.extensionMode === ExtensionMode.Development,
+	);
+
+	Logger.log(
+		`Find Related Files${prerelease ? ' (pre-release)' : ''} v${extensionVersion} activating in ${
+			env.appName
+		}(${codeVersion}) on the ${isWeb ? 'web' : 'desktop'}`,
 	);
 
 	Configuration.configure(context);
