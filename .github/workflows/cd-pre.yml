@@ -57,7 +57,7 @@ jobs:
             - name: Setup node
               uses: actions/setup-node@v3
               with:
-                  node-version: '14'
+                  node-version: '18'
             - name: Install
               run: yarn
             - name: Apply pre-release patch
@@ -67,7 +67,7 @@ jobs:
             - name: Package extension
               run: yarn run package --pre-release
             - name: Publish extension
-              run: yarn vsce publish --yarn --pre-release --packagePath ./${{ env.PACKAGE_NAME }}.vsix -p ${{ secrets.VSCODE_MARKETPLACE_PAT }}
+              run: yarn vsce publish --yarn --pre-release --packagePath ./${{ env.PACKAGE_NAME }}.vsix -p ${{ secrets.MARKETPLACE_PAT }}
             - name: Publish artifact
               uses: actions/upload-artifact@v3
               with:
