@@ -68,6 +68,7 @@
 							"aurelia",
 							"c/c++",
 							"csharp",
+							"delphi",
 							"minified",
 							"xaml"
 						],
@@ -79,6 +80,7 @@
 								"aurelia",
 								"c/c++",
 								"csharp",
+								"delphi",
 								"minified",
 								"xaml"
 							],
@@ -88,6 +90,7 @@
 								"Applies rules for Aurelia projects",
 								"Applies rules for C/C++ projects",
 								"Applies rules for C# projects",
+								"Applies rules for Delphi projects",
 								"Applies rules for minified CSS/JS files",
 								"Applies rules for XAML files"
 							]

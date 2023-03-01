@@ -11,13 +11,13 @@ Finds files related to the current file based on user-defined configuration rule
 
 Basic support for the following languages/frameworks is [built-in](#built-in-rulesets):
 
-- minified files
-- c, c++, c#
-- asp.net
-- asp.net mvc
-- aurelia
-- xaml
-- delphi
+- minified CSS/JS files
+- C, C++, C#
+- ASP.NET
+- ASP.NET MVC
+- Aurelia
+- Delphi
+- XAML
 
 Please open new [Github issues](https://github.com/eamodio/vscode-find-related/issues) with any rules you'd like included in the built-in ruleset.
 
@@ -27,7 +27,7 @@ Please open new [Github issues](https://github.com/eamodio/vscode-find-related/i
 
 ---
 
-## Built-in rulesets
+## Example ruleset
 
 ```
 [
@@ -37,105 +37,6 @@ Please open new [Github issues](https://github.com/eamodio/vscode-find-related/i
 			{
 				"pattern": "(.*?)(\\.min)?\\.(js|css)(?:\\.map)?$",
 				"locators": ["{$1.$3,$1.min.$3,$1.$3.map,$1.min.$3.map}"]
-			}
-		]
-	},
-	{
-		"name": "c/c++",
-		"rules": [
-			{
-				"pattern": "(.*)\\.(?:c|cpp)$",
-				"locators": ["$1.h"]
-			},
-			{
-				"pattern": "(.*)\\.h$",
-				"locators": ["{$1.c,$1.cpp}"]
-			}
-		]
-	},
-	{
-		"name": "csharp",
-		"rules": [
-			{
-				"pattern": "(.*)\\.(?:cs|resx|settings)$",
-				"locators": ["$1.designer.cs"]
-			},
-			{
-				"pattern": "(.*)\\.designer\\.cs$",
-				"locators": ["{$1.cs,$1.resx,$1.settings}"]
-			}
-		]
-	},
-	{
-		"name": "aspnet",
-		"rules": [
-			{
-				"pattern": "(.*)\\.(?:aspx|ascx|asax|ashx|asmx)$",
-				"locators": ["{$0.cs,$0.designer.cs}"]
-			},
-			{
-				"pattern": "(.*)\\.(aspx|ascx|asax|ashx|asmx)(\\.designer)?(\\.cs)$",
-				"locators": ["{$1.$2,$1$3$4}"]
-			}
-		]
-	},
-	{
-		"name": "aspnet-mvc",
-		"rules": [
-			{
-				"pattern": "(.*)/views/(.*?)(?:/.*)?\\.cshtml$",
-				"locators": ["$1/**/Controllers/**/$2Controller.cs"]
-			},
-			{
-				"pattern": "(.*)/controllers/(.*)/?(.*)controller\\.cs$",
-				"locators": ["$1/**/Views/**/$2/**/*.cshtml"]
-			}
-		]
-	},
-	{
-		"name": "aurelia",
-		"rules": [
-			{
-				"pattern": "(.*)\\.html$",
-				"locators": ["{$1.ts,$1.js}"]
-			},
-			{
-				"pattern": "(.*)\\.(?:ts|js)$",
-				"locators": ["$1.html"]
-			}
-		]
-	},
-	{
-		"name": "xaml",
-		"rules": [
-			{
-				"pattern": "(.*)\\.xaml$",
-				"locators": ["$1.xaml.cs"]
-			},
-			{
-				"pattern": "(.*)\\.xaml\\.cs$",
-				"locators": ["$1.xaml"]
-			}
-		]
-	},
-	{
-		"name": "delphi",
-		"rules": [
-			{
-				"pattern": "(.*)\\.(?:dfm)$",
-				"locators": [ "$1.pas" ]
-			},
-			{
-				"pattern": "(.*)\\.pas$",
-				"locators": [ "{$1.dfm}" ]
-			},
-			{
-				"pattern": "(.*)\\.dproj$",
-				"locators": [ "{$1.dpk,$1.dpr}" ]
-			},
-			{
-				"pattern": "(.*)\\.(?:dpk|dpr)$",
-				"locators": [ "$1.dproj" ]
 			}
 		]
 	}
