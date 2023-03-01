@@ -48,6 +48,11 @@
 	"activationEvents": [
 		"onCommand:findrelated.show"
 	],
+	"capabilities": {
+		"untrustedWorkspaces": {
+			"supported": true
+		}
+	},
 	"contributes": {
 		"configuration": [
 			{
