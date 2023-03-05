@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## [Unreleased]
 
+## [1.0.0] - 2023-03-05
+
 ### Added
 
 - Adds support for VS Code on the Web (vscode.dev / github.dev)

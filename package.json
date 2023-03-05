@@ -2,7 +2,7 @@
 	"name": "find-related",
 	"displayName": "Find Related Files",
 	"description": "Finds files related to the current file based on user-defined configuration rules",
-	"version": "0.9.0",
+	"version": "1.0.0",
 	"engines": {
 		"vscode": "^1.72.0"
 	},
