@@ -1,4 +1,5 @@
 export const commandPrefix = 'findrelated';
+export const configPrefix = 'findrelated';
 
 export const enum CharCode {
 	/**
