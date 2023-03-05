@@ -15,7 +15,7 @@ const { optimize, WebpackError } = require('webpack');
 
 module.exports =
 	/**
-	 * @param {{ analyzeBundle?: boolean; analyzeDeps?: boolean; esbuild?: boolean; } | undefined } env
+	 * @param {{ analyzeBundle?: boolean; analyzeDeps?: boolean; esbuild?: boolean; esbuildMinify?: boolean } | undefined } env
 	 * @param {{ mode: 'production' | 'development' | 'none' | undefined }} argv
 	 * @returns { WebpackConfig[] }
 	 */
@@ -36,7 +36,7 @@ module.exports =
 /**
  * @param { 'node' | 'webworker' } target
  * @param { 'production' | 'development' | 'none' } mode
- * @param {{ analyzeBundle?: boolean; analyzeDeps?: boolean; esbuild?: boolean } } env
+ * @param {{ analyzeBundle?: boolean; analyzeDeps?: boolean; esbuild?: boolean; esbuildMinify?: boolean } } env
  * @returns { WebpackConfig }
  */
 function getExtensionConfig(target, mode, env) {
