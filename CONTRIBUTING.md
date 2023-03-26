@@ -136,15 +136,23 @@ Please follow all the instructions in the [PR template](.github/PULL_REQUEST_TEM
 
 ### Update the CHANGELOG
 
-The [Change Log](CHANGELOG.md) is updated manually and an entry should be added for each change. Changes are grouped in lists by `added`, `changed` or `fixed`.
+The [Change Log](CHANGELOG.md) is updated manually and an entry should be added for each change. Changes are grouped in lists by `added`, `changed`, `removed`, or `fixed`.
 
 Entries should be written in future tense:
 
-> - Adds awesome feature
+- Be sure to give yourself much deserved credit by adding your name and user in the entry
 
-Be sure to give yourself much deserved credit by adding your name and user in the entry:
-
-> - Adds awesome feature &mdash; thanks to [PR #1](https://github.com/eamodio/vscode-find-related/pull/1) by Eric Amodio ([@eamodio](https://github.com/eamodio))
+> Added
+>
+> - Adds awesome feature &mdash; closes [#\<issue\>](https://github.com/eamodio/vscode-find-related/issues/<issue>) thanks to [PR #\<pr\>](https://github.com/eamodio/vscode-find-related/issues/<pr>) by Your Name ([@\<your-github-username\>](https://github.com/<your-github-username>))
+>
+> Changed
+>
+> - Changes or improves an existing feature &mdash; closes [#\<issue\>](https://github.com/eamodio/vscode-find-related/issues/<issue>) thanks to [PR #\<pr\>](https://github.com/eamodio/vscode-find-related/issues/<pr>) by Your Name ([@\<your-github-username\>](https://github.com/<your-github-username>))
+>
+> Fixed
+>
+> - Fixes [#\<issue\>](https://github.com/eamodio/vscode-find-related/issues/<issue>) a bug or regression &mdash; thanks to [PR #\<pr\>](https://github.com/eamodio/vscode-find-related/issues/<pr>) by Your Name ([@\<your-github-username\>](https://github.com/<your-github-username>))
 
 ### Update the README
 
