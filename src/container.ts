@@ -42,7 +42,11 @@ export class Container {
 		context.subscriptions.splice(0, 0, (this._api = new FindRelatedApi(this)));
 
 		context.subscriptions.splice(0, 0, new Commands(this));
-		context.subscriptions.splice(0, 0, configuration.onWillChange(this.onConfigurationChanging, this));
+		context.subscriptions.splice(
+			0,
+			0,
+			configuration.onDidChangeBeforeOverrides(this.onConfigurationChangedBeforeOverrides, this),
+		);
 	}
 
 	private _api: FindRelatedApi;
@@ -65,7 +69,7 @@ export class Container {
 		return this._rulesProvider;
 	}
 
-	private onConfigurationChanging(e: ConfigurationChangeEvent) {
+	private onConfigurationChangedBeforeOverrides(e: ConfigurationChangeEvent) {
 		if (configuration.changed(e, 'outputLevel')) {
 			Logger.logLevel = fromOutputLevel(configuration.get('outputLevel'));
 		}
