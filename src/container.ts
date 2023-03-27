@@ -1,5 +1,5 @@
 import type { ConfigurationChangeEvent, ExtensionContext } from 'vscode';
-import { Commands } from './commands';
+import { CommandProvider } from './commands';
 import { fromOutputLevel } from './config';
 import { FindRelatedApi } from './extensionApi';
 import { RulesProvider } from './rulesProvider';
@@ -37,16 +37,12 @@ export class Container {
 	private constructor(context: ExtensionContext) {
 		this._context = context;
 
-		context.subscriptions.splice(0, 0, (this._rulesProvider = new RulesProvider(this)));
-		context.subscriptions.splice(0, 0, (this._keyboard = new Keyboard()));
-		context.subscriptions.splice(0, 0, (this._api = new FindRelatedApi(this)));
+		context.subscriptions.unshift((this._rulesProvider = new RulesProvider(this)));
+		context.subscriptions.unshift((this._keyboard = new Keyboard()));
+		context.subscriptions.unshift((this._api = new FindRelatedApi(this)));
 
-		context.subscriptions.splice(0, 0, new Commands(this));
-		context.subscriptions.splice(
-			0,
-			0,
-			configuration.onDidChangeBeforeOverrides(this.onConfigurationChangedBeforeOverrides, this),
-		);
+		context.subscriptions.unshift(new CommandProvider(this));
+		context.subscriptions.unshift(configuration.onDidChangeAny(this.onAnyConfigurationChanged, this));
 	}
 
 	private _api: FindRelatedApi;
@@ -69,7 +65,7 @@ export class Container {
 		return this._rulesProvider;
 	}
 
-	private onConfigurationChangedBeforeOverrides(e: ConfigurationChangeEvent) {
+	private onAnyConfigurationChanged(e: ConfigurationChangeEvent) {
 		if (configuration.changed(e, 'outputLevel')) {
 			Logger.logLevel = fromOutputLevel(configuration.get('outputLevel'));
 		}

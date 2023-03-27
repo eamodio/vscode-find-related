@@ -1,6 +1,6 @@
 import type { QuickPickItem } from 'vscode';
-import { commands } from 'vscode';
-import type { Keys } from '../system/keyboard';
+import type { Commands, Keys } from '../constants';
+import { executeCommand } from '../system/command';
 
 declare module 'vscode' {
 	interface QuickPickItem {
@@ -10,9 +10,9 @@ declare module 'vscode' {
 }
 
 export class CommandQuickPickItem<Arguments extends any[] = any[]> implements QuickPickItem {
-	static fromCommand<T>(label: string, command: string, args?: T): CommandQuickPickItem;
-	static fromCommand<T>(item: QuickPickItem, command: string, args?: T): CommandQuickPickItem;
-	static fromCommand<T>(labelOrItem: string | QuickPickItem, command: string, args?: T): CommandQuickPickItem {
+	static fromCommand<T>(label: string, command: Commands, args?: T): CommandQuickPickItem;
+	static fromCommand<T>(item: QuickPickItem, command: Commands, args?: T): CommandQuickPickItem;
+	static fromCommand<T>(labelOrItem: string | QuickPickItem, command: Commands, args?: T): CommandQuickPickItem {
 		return new CommandQuickPickItem(
 			typeof labelOrItem === 'string' ? { label: labelOrItem } : labelOrItem,
 			command,
@@ -30,7 +30,7 @@ export class CommandQuickPickItem<Arguments extends any[] = any[]> implements Qu
 
 	constructor(
 		label: string,
-		command?: string,
+		command?: Commands,
 		args?: Arguments,
 		options?: {
 			onDidPressKey?: (key: Keys, result: Thenable<unknown>) => void;
@@ -39,7 +39,7 @@ export class CommandQuickPickItem<Arguments extends any[] = any[]> implements Qu
 	);
 	constructor(
 		item: QuickPickItem,
-		command?: string,
+		command?: Commands,
 		args?: Arguments,
 		options?: {
 			onDidPressKey?: (key: Keys, result: Thenable<unknown>) => void;
@@ -48,7 +48,7 @@ export class CommandQuickPickItem<Arguments extends any[] = any[]> implements Qu
 	);
 	constructor(
 		labelOrItem: string | QuickPickItem,
-		command?: string,
+		command?: Commands,
 		args?: Arguments,
 		options?: {
 			onDidPressKey?: (key: Keys, result: Thenable<unknown>) => void;
@@ -57,7 +57,7 @@ export class CommandQuickPickItem<Arguments extends any[] = any[]> implements Qu
 	);
 	constructor(
 		labelOrItem: string | QuickPickItem,
-		protected readonly command?: string,
+		protected readonly command?: Commands,
 		protected readonly args?: Arguments,
 		protected readonly options?: {
 			// onDidExecute?: (
@@ -81,7 +81,7 @@ export class CommandQuickPickItem<Arguments extends any[] = any[]> implements Qu
 	execute(_options?: { preserveFocus?: boolean; preview?: boolean }): Promise<unknown | undefined> {
 		if (this.command === undefined) return Promise.resolve(undefined);
 
-		const result = commands.executeCommand(this.command, ...(this.args ?? [])) as Promise<unknown | undefined>;
+		const result = executeCommand(this.command, ...(this.args ?? [])) as Promise<unknown | undefined>;
 		// this.options?.onDidExecute?.(options, result);
 		return result;
 	}

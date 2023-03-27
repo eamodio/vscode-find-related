@@ -1,6 +1,8 @@
-import { commands, Disposable } from 'vscode';
-import { commandPrefix, ContextKeys } from '../constants';
+import { Disposable } from 'vscode';
+import type { Keys } from '../constants';
+import { extensionPrefix, keys } from '../constants';
 import { setContext } from '../context';
+import { registerCommand } from './command';
 import { log } from './decorators/log';
 import { Logger } from './logger';
 import { getLogScope } from './logger.scope';
@@ -11,19 +13,6 @@ export declare interface KeyCommand {
 
 const keyNoopCommand = Object.create(null) as KeyCommand;
 export { keyNoopCommand as KeyNoopCommand };
-
-export const keys = [
-	'left',
-	'alt+left',
-	'ctrl+left',
-	'right',
-	'alt+right',
-	'ctrl+right',
-	'alt+enter',
-	'ctrl+enter',
-	'escape',
-] as const;
-export type Keys = (typeof keys)[number];
 
 export type KeyMapping = { [K in Keys]?: KeyCommand | (() => Promise<KeyCommand>) };
 type IndexableKeyMapping = KeyMapping & {
@@ -85,7 +74,7 @@ export class KeyboardScope implements Disposable {
 		}
 
 		mapping[key] = undefined;
-		await setContext(`${ContextKeys.KeyPrefix}${key}`, false);
+		await setContext(`${extensionPrefix}:key:${key}`, false);
 	}
 
 	@log({
@@ -139,12 +128,12 @@ export class KeyboardScope implements Disposable {
 
 		mapping[key] = command;
 		if (!set) {
-			await setContext(`${ContextKeys.KeyPrefix}${key}`, true);
+			await setContext(`${extensionPrefix}:key:${key}`, true);
 		}
 	}
 
 	private async updateKeyCommandsContext(mapping: KeyMapping) {
-		await Promise.all(keys.map(key => setContext(`${ContextKeys.KeyPrefix}${key}`, Boolean(mapping?.[key]))));
+		await Promise.all(keys.map(key => setContext(`${extensionPrefix}:key:${key}`, Boolean(mapping?.[key]))));
 	}
 }
 
@@ -153,7 +142,7 @@ export class Keyboard implements Disposable {
 
 	constructor() {
 		const subscriptions = keys.map(key =>
-			commands.registerCommand(`${commandPrefix}.key.${key}`, () => this.execute(key), this),
+			registerCommand(`${extensionPrefix}.key.${key}`, () => this.execute(key), this),
 		);
 		this._disposable = Disposable.from(...subscriptions);
 	}

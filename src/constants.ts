@@ -1,5 +1,7 @@
-export const commandPrefix = 'findrelated';
-export const configPrefix = 'findrelated';
+export const extensionPrefix = 'findrelated';
+type StripPrefix<T extends string, S extends '.' | ':'> = T extends `${typeof extensionPrefix}${S}${infer U}`
+	? U
+	: never;
 
 export const enum CharCode {
 	/**
@@ -12,11 +14,22 @@ export const enum CharCode {
 	Backslash = 92,
 }
 
-export const enum ContextKeys {
-	KeyPrefix = 'findrelated:key',
-}
+export type Commands = `${typeof extensionPrefix}.key.${Keys}` | `${typeof extensionPrefix}.show`;
+export type CommandsUnqualified = StripPrefix<Commands, '.'>;
 
-export const enum CoreCommands {
-	Open = 'vscode.open',
-	SetContext = 'setContext',
-}
+export type ContextKeys = `${typeof extensionPrefix}:key:${Keys}`;
+
+export type CoreCommands = 'vscode.open' | 'setContext';
+
+export const keys = [
+	'left',
+	'alt+left',
+	'ctrl+left',
+	'right',
+	'alt+right',
+	'ctrl+right',
+	'alt+enter',
+	'ctrl+enter',
+	'escape',
+] as const;
+export type Keys = (typeof keys)[number];

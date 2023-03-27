@@ -1,8 +1,9 @@
 import type { TextDocument, TextDocumentShowOptions, TextEditor, Uri } from 'vscode';
-import { commands, Disposable, ViewColumn, window, workspace } from 'vscode';
+import { Disposable, ViewColumn, window, workspace } from 'vscode';
 import type { Container } from './container';
 import { showRelatedPicker } from './quickPicks/relatedPicker';
 import type { IRule } from './rule';
+import { registerCommand } from './system/command';
 import { configuration } from './system/configuration';
 import type { Command } from './system/decorators/command';
 import { createCommandDecorator } from './system/decorators/command';
@@ -12,20 +13,17 @@ import { basename, dirname, normalizePath } from './system/path';
 const registrableCommands: Command[] = [];
 const command = createCommandDecorator(registrableCommands);
 
-export class Commands implements Disposable {
+export class CommandProvider implements Disposable {
 	private readonly _disposable: Disposable;
 
 	constructor(private readonly container: Container) {
 		this._disposable = Disposable.from(
-			...registrableCommands.map(({ name, method }) =>
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-				commands.registerCommand(name, (...args: any[]) => method.apply(this, args)),
-			),
+			...registrableCommands.map(({ name, method }) => registerCommand(name, method, this)),
 		);
 	}
 
 	dispose() {
-		this._disposable?.dispose();
+		this._disposable.dispose();
 	}
 
 	@command('show', { showErrorMessage: 'Unable to show related files. See output channel for more details' })

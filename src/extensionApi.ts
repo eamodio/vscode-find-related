@@ -11,6 +11,7 @@ export class FindRelatedApi implements Disposable {
 	constructor(private readonly container: Container) {}
 
 	registerRuleset(name: string, rules: RuleDefinition[]): Disposable;
+	// eslint-disable-next-line @typescript-eslint/unified-signatures
 	registerRuleset(name: string, rules: DynamicRule[]): Disposable;
 	registerRuleset(name: string, rules: (DynamicRule | RuleDefinition)[]): Disposable {
 		return this.container.rules.registerRuleset(name, rules);
