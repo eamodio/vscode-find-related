@@ -1,5 +1,5 @@
 [![](https://vsmarketplacebadges.dev/version-short/amodio.find-related.svg)](https://marketplace.visualstudio.com/items?itemName=amodio.find-related)
-[![](https://vsmarketplacebadges.dev/downloads-short/amodio.find-related.svg)](https://marketplace.visualstudio.com/items?itemName=amodio.find-related)
+[![](https://vsmarketplacebadges.dev/installs-short/amodio.find-related.svg)](https://marketplace.visualstudio.com/items?itemName=amodio.find-related)
 [![](https://vsmarketplacebadges.dev/rating-short/amodio.find-related.svg)](https://marketplace.visualstudio.com/items?itemName=amodio.find-related)
 [![](https://img.shields.io/badge/vscode--dev--community-find--related--files-blue.svg?logo=slack&labelColor=555555)](https://vscode-slack.amod.io)
 
