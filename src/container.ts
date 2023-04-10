@@ -37,12 +37,19 @@ export class Container {
 	private constructor(context: ExtensionContext) {
 		this._context = context;
 
-		context.subscriptions.unshift((this._rulesProvider = new RulesProvider(this)));
-		context.subscriptions.unshift((this._keyboard = new Keyboard()));
-		context.subscriptions.unshift((this._api = new FindRelatedApi(this)));
+		const disposables = [
+			(this._rulesProvider = new RulesProvider(this)),
+			(this._keyboard = new Keyboard()),
+			(this._api = new FindRelatedApi(this)),
+			new CommandProvider(this),
+			configuration.onDidChangeAny(this.onAnyConfigurationChanged, this),
+		];
 
-		context.subscriptions.unshift(new CommandProvider(this));
-		context.subscriptions.unshift(configuration.onDidChangeAny(this.onAnyConfigurationChanged, this));
+		context.subscriptions.push({
+			dispose: function () {
+				disposables.reverse().forEach(d => void d.dispose());
+			},
+		});
 	}
 
 	private _api: FindRelatedApi;
@@ -70,4 +77,8 @@ export class Container {
 			Logger.logLevel = fromOutputLevel(configuration.get('outputLevel'));
 		}
 	}
+}
+
+export function isContainer(container: any): container is Container {
+	return container instanceof Container;
 }

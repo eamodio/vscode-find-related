@@ -1,7 +1,8 @@
 import type { TextDocument, TextDocumentShowOptions, TextEditor, Uri } from 'vscode';
 import { Disposable, ViewColumn, window, workspace } from 'vscode';
+import type { PaletteCommands } from './constants';
 import type { Container } from './container';
-import { showRelatedPicker } from './quickPicks/relatedPicker';
+import { showRelatedPicker } from './pickers/relatedPicker';
 import type { IRule } from './rule';
 import { registerCommand } from './system/command';
 import { configuration } from './system/configuration';
@@ -10,7 +11,7 @@ import { createCommandDecorator } from './system/decorators/command';
 import { Logger } from './system/logger';
 import { basename, dirname, normalizePath } from './system/path';
 
-const registrableCommands: Command[] = [];
+const registrableCommands: Command<keyof PaletteCommands>[] = [];
 const command = createCommandDecorator(registrableCommands);
 
 export class CommandProvider implements Disposable {

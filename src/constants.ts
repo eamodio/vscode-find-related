@@ -1,7 +1,5 @@
 export const extensionPrefix = 'findrelated';
-type StripPrefix<T extends string, S extends '.' | ':'> = T extends `${typeof extensionPrefix}${S}${infer U}`
-	? U
-	: never;
+type StripPrefix<Key extends string, Prefix extends string> = Key extends `${Prefix}${infer Rest}` ? Rest : never;
 
 export const enum CharCode {
 	/**
@@ -14,8 +12,13 @@ export const enum CharCode {
 	Backslash = 92,
 }
 
-export type Commands = `${typeof extensionPrefix}.key.${Keys}` | `${typeof extensionPrefix}.show`;
-export type CommandsUnqualified = StripPrefix<Commands, '.'>;
+export type PaletteCommands = {
+	'findrelated.show': [];
+};
+
+export type Commands = PaletteCommands & { [Key in `${typeof extensionPrefix}.key.${Keys}`]: [] };
+
+export type UnqualifiedPaletteCommands = StripPrefix<keyof PaletteCommands, 'findrelated.'>;
 
 export type ContextKeys = `${typeof extensionPrefix}:key:${Keys}`;
 
